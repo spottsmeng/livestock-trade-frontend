@@ -1,0 +1,96 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { toast } from "@/components/ui/toast";
+import { useAuthStore, ApiError, type Role } from "@/lib/auth-store";
+import { strings } from "@/lib/strings";
+
+const ROLE_HOME: Record<Role, string> = { OWNER: "/owner", ACCOUNTANT: "/accountant", BUYER: "/buyer" };
+
+export default function LoginPage() {
+  const router = useRouter();
+  const login = useAuthStore((s) => s.login);
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [totpCode, setTotpCode] = React.useState("");
+  const [needsMfa, setNeedsMfa] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await login(email, password, totpCode);
+      const role = useAuthStore.getState().user?.role;
+      router.replace(role ? ROLE_HOME[role] : "/login");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.code === "MFA_REQUIRED") setNeedsMfa(true);
+        const message =
+          strings.auth.errors[err.code as keyof typeof strings.auth.errors] ?? strings.auth.login.genericError;
+        toast({ title: message, variant: "danger" });
+      } else {
+        toast({ title: strings.auth.login.genericError, variant: "danger" });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-canvas p-6">
+      <div className="self-end">
+        <ThemeToggle />
+      </div>
+      <Card className="w-full max-w-sm">
+        <h1 className="mb-6 text-xl font-semibold text-fg-primary">{strings.auth.login.title}</h1>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="email">{strings.auth.login.emailLabel}</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="password">{strings.auth.login.passwordLabel}</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {needsMfa ? (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="totp">{strings.auth.login.totpLabel}</Label>
+              <Input
+                id="totp"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value)}
+              />
+              <p className="text-xs text-fg-tertiary">{strings.auth.login.totpHint}</p>
+            </div>
+          ) : null}
+          <Button type="submit" disabled={submitting} className="mt-2">
+            {submitting ? strings.auth.login.submitting : strings.auth.login.submit}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+}

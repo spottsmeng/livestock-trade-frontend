@@ -1,0 +1,14 @@
+{
+  "name": "@livestock/design-tokens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/tokens.ts",
+  "exports": {
+    "./css": "./dist/tokens.css",
+    "./tokens": "./dist/tokens.ts"
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}
