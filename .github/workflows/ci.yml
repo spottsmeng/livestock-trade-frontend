@@ -75,16 +75,10 @@ jobs:
         with:
           repository: spottsmeng/livestock-trading-backend
           path: backend
-
-      - name: Set up shared fixtures directory
-        run: |
-          mkdir -p fixtures
-          cp backend/../frontend/../fixtures/* fixtures/ 2>/dev/null || true
-        # The two repos share fixtures/reference-data-seed.json from the
-        # parent working folder in local dev (see backend/core/config.py's
-        # reference_data_seed_path comment) — CI has no such shared parent,
-        # so backend/scripts/seed.py's REFERENCE_DATA_SEED_PATH env var
-        # (set below) points it at backend's own copy instead.
+        # backend/fixtures/ (engine/bidcheck golden vectors, the reference-
+        # data seed) is vendored inside the backend repo itself (Phase 5 —
+        # see backend/fixtures/README.md), so this checkout alone is
+        # enough; no separate shared-fixtures step needed.
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
