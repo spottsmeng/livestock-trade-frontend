@@ -80,6 +80,10 @@ function EditForm({
         <DialogDescription>
           This creates a new version. Nothing takes effect until you preview its impact and activate it.
         </DialogDescription>
+        {/* eslint-disable-next-line local/no-raw-design-values -- 60vh caps this dialog's scroll area
+            to a viewport fraction; no spacing/sizing token or Tailwind scale step expresses "% of
+            viewport height", and percentage-height utilities (max-h-2/3 etc.) are relative to the
+            parent, not the viewport, which isn't equivalent here. */}
         <form className="mt-4 flex max-h-[60vh] flex-col gap-4 overflow-y-auto" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cif-buffer">{strings.referenceData.model.cifBuffer}</Label>

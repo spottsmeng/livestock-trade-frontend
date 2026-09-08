@@ -13,7 +13,7 @@ export function BreachReasonChips({ value, onChange }: { value: string | null; o
           aria-pressed={value === reason}
           onClick={() => onChange(reason)}
           className={cn(
-            "min-h-[44px] rounded-full border px-3 py-1.5 text-sm font-medium",
+            "min-h-11 rounded-full border px-3 py-1.5 text-sm font-medium", // 44px — Tailwind's numeric scale
             value === reason
               ? "border-accent-default bg-accent-subtle text-accent-default"
               : "border-default text-fg-secondary"

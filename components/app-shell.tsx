@@ -20,6 +20,7 @@ const _CONSOLE_NAV = [
   { href: "/correction-requests", label: () => strings.shell.nav.correctionRequests, ownerOnly: false },
   { href: "/reference-data", label: () => strings.shell.nav.referenceData, ownerOnly: false },
   { href: "/buy-instructions", label: () => strings.shell.nav.buyInstructions, ownerOnly: false },
+  { href: "/dashboard", label: () => strings.shell.nav.dashboard, ownerOnly: false },
   { href: "/users", label: () => strings.shell.nav.users, ownerOnly: true },
 ] as const;
 
@@ -66,7 +67,10 @@ export function AppShell({ title, children }: { title: string; children: React.R
       <header className="flex flex-col gap-3 border-b border-subtle bg-surface px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-lg font-semibold text-fg-primary">{title}</span>
+            {/* The one <h1> for every screen mounted under AppShell (§15.6 WCAG —
+                axe-core's page-has-heading-one caught its absence live). Pages that
+                also show their own in-body heading use <h2> for it, not a second h1. */}
+            <h1 className="text-lg font-semibold text-fg-primary">{title}</h1>
             {user ? <Badge variant="accent">{strings.shell.roleLabels[user.role]}</Badge> : null}
           </div>
           <div className="flex items-center gap-4">

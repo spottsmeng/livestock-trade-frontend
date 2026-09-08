@@ -60,7 +60,7 @@ function StepBadge({ label, blocked }: { label: string; blocked: string | null }
   return (
     <div className="flex flex-1 flex-col items-center gap-1 text-center">
       <Badge variant={blocked ? "neutral" : "pass"}>{label}</Badge>
-      <span className="min-h-[2.5em] text-xs text-fg-tertiary">{blocked ?? "✓"}</span>
+      <span className="min-h-10 text-xs text-fg-tertiary">{blocked ?? "✓"}</span>
     </div>
   );
 }

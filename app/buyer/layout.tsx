@@ -12,7 +12,11 @@ export const viewport: Viewport = {
   themeColor: "#1c63d6",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // §15.6 WCAG 2.2 AA (1.4.4/1.4.10) — pinch-zoom must never be disabled.
+  // `maximumScale: 1` was here (presumably to stop accidental double-tap
+  // zoom on the numeric keypad) but it's a real accessibility regression —
+  // axe-core's meta-viewport rule caught it live, and disabling zoom hurts
+  // exactly the low-vision buyers §12.1's Yard Mode already exists for.
 };
 
 export default function BuyerLayout({ children }: { children: React.ReactNode }) {

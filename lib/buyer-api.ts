@@ -131,6 +131,30 @@ export const buyerApi = {
   ) => apiFetch<void>("/buyer/push-subscriptions", { method: "POST", body, ...auth(accessToken) }),
 
   getWsTicket: (accessToken: string | null) => apiFetch<{ ticket: string }>("/ws/ticket", { method: "POST", ...auth(accessToken) }),
+
+  getScorecard: (accessToken: string | null, params?: { from?: string; to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.from) query.set("from", params.from);
+    if (params?.to) query.set("to", params.to);
+    const qs = query.toString();
+    return apiFetch<ScorecardResponse>(`/buyer/scorecard${qs ? `?${qs}` : ""}`, auth(accessToken));
+  },
+};
+
+// §12.6, §9.5 — own performance only. Buyer-safe by construction on the
+// backend (schemas/buyer.py's ScorecardResponse); no forbidden field ever
+// reaches this type.
+export type ScorecardResponse = {
+  from_: string | null;
+  to: string | null;
+  heads_bought: number;
+  heads_target: string | null;
+  avg_paid_per_kg: string | null;
+  avg_dnbp_per_kg: string | null;
+  headroom_captured_aud: string;
+  breach_count: number;
+  breach_rate: string;
+  spend_by_saleyard: { saleyard: string; spend_aud: string }[];
 };
 
 /** §9.9/§10 — the buyer's WS channel; always re-fetches /buyer/dnbp/current on (re)connect. */

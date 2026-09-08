@@ -84,7 +84,11 @@ function WorkbenchListContent() {
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
+          <label htmlFor="upload-file" className="sr-only">
+            Select .xlsx file to upload
+          </label>
           <input
+            id="upload-file"
             type="file"
             accept=".xlsx"
             onChange={(e) => {

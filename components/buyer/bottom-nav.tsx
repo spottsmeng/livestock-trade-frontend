@@ -10,12 +10,14 @@ const TABS = [
   { href: "/buyer/bid-check", label: strings.buyer.nav.bidCheck },
   { href: "/buyer/buy-log", label: strings.buyer.nav.buyLog },
   { href: "/buyer/instruction", label: strings.buyer.nav.instruction },
+  { href: "/buyer/scorecard", label: strings.buyer.nav.scorecard },
 ] as const;
 
 /**
- * §12.2's thumb-zone action bar, generalised into a 3-tab bottom nav since
- * Phase 3 ships all three PWA screens (Screens 4-5 arrive in Phases 4-5).
- * 56px+ touch targets throughout (§12.1).
+ * §12.2's thumb-zone action bar, generalised into a bottom nav across all
+ * five PWA screens — Screen 4 (Instruction, Phase 4) and Screen 5
+ * (Scorecard, Phase 5) both added on this same pattern as Phase 3 shipped
+ * the first three. 56px+ touch targets throughout (§12.1).
  */
 export function BuyerBottomNav() {
   const pathname = usePathname();
@@ -30,7 +32,7 @@ export function BuyerBottomNav() {
             href={tab.href}
             className={cn(
               "flex flex-1 items-center justify-center py-4 text-base font-semibold transition-colors",
-              "min-h-[56px]",
+              "min-h-14", // 56px — Tailwind's own numeric scale, not an arbitrary value (§15.1)
               active ? "text-accent-default border-t-2 border-accent-default" : "text-fg-secondary"
             )}
             aria-current={active ? "page" : undefined}

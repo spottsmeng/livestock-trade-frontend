@@ -70,7 +70,12 @@ function AcceptInviteForm() {
   }
 
   if (!token) {
-    return <p className="text-sm text-status-danger">{strings.auth.acceptInvite.missingToken}</p>;
+    return (
+      <div className="flex flex-col gap-2">
+        <h1 className="text-xl font-semibold text-fg-primary">{strings.auth.acceptInvite.title}</h1>
+        <p className="text-sm text-status-danger">{strings.auth.acceptInvite.missingToken}</p>
+      </div>
+    );
   }
 
   if (pendingMfa) {
@@ -124,12 +129,12 @@ function AcceptInviteForm() {
 
 export default function AcceptInvitePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas p-6">
+    <main className="flex min-h-screen items-center justify-center bg-canvas p-6">
       <Card className="w-full max-w-sm">
         <Suspense fallback={null}>
           <AcceptInviteForm />
         </Suspense>
       </Card>
-    </div>
+    </main>
   );
 }

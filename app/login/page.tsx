@@ -44,7 +44,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-canvas p-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-canvas p-6">
       <div className="self-end">
         <ThemeToggle />
       </div>
@@ -91,6 +91,6 @@ export default function LoginPage() {
           </Button>
         </form>
       </Card>
-    </div>
+    </main>
   );
 }

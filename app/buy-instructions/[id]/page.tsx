@@ -137,9 +137,10 @@ function BuyInstructionDetailContent({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-fg-primary">
+          {/* AppShell already renders the page's <h1> (its title bar) — this is the content area's own heading. */}
+          <h2 className="text-xl font-semibold text-fg-primary">
             {instruction.instruction_no} <span className="text-fg-tertiary">v{instruction.version}</span>
-          </h1>
+          </h2>
           <p className="mt-1 text-sm text-fg-secondary">
             {instruction.trade_date} · {instruction.approved_by ? `${strings.buyInstructions.approvedBy}: ✓` : "Not yet approved"}
           </p>
@@ -173,6 +174,10 @@ function BuyInstructionDetailContent({ id }: { id: string }) {
       <Card>
         <h2 className="text-lg font-semibold text-fg-primary">{strings.buyInstructions.lineItems}</h2>
         <div className="mt-3 overflow-x-auto">
+          {/* eslint-disable-next-line local/no-raw-design-values -- 900px is the minimum width this
+              specific wide table needs before its columns start clipping; not a design-token value,
+              a functional layout threshold, and the closest named scale step (min-w-96 = 384px) isn't
+              remotely equivalent. */}
           <table className="w-full min-w-[900px] text-sm">
             <thead>
               <tr className="border-b border-subtle text-left text-fg-tertiary">

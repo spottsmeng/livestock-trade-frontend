@@ -116,7 +116,8 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-fg-primary">{snapshot.source_filename}</h1>
+          {/* AppShell already renders the page's <h1> (its title bar) — this is the content area's own heading. */}
+          <h2 className="text-xl font-semibold text-fg-primary">{snapshot.source_filename}</h2>
           <p className="mt-1 text-sm text-fg-secondary">
             <Badge variant={snapshot.status === "CALCULATED" ? "pass" : "neutral"}>{snapshot.status}</Badge>
             <span className="ml-2">SHA-256 {snapshot.source_sha256.slice(0, 12)}…</span>
