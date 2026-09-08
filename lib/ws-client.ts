@@ -24,6 +24,11 @@ export class TicketSocket {
     this.closedByUser = false;
     try {
       const ticket = await this.getTicket();
+      // close() may have already fired while the ticket request was in
+      // flight — this.socket was still null then, so it couldn't close
+      // anything. Recheck now, or a closed-before-connected caller leaks
+      // an orphaned socket nothing will ever close.
+      if (this.closedByUser) return;
       const wsUrl = API_BASE_URL.replace(/^http/, "ws");
       this.socket = new WebSocket(`${wsUrl}/api/v1${this.path}?ticket=${encodeURIComponent(ticket)}`);
 
