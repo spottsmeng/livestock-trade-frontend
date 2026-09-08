@@ -1,0 +1,17 @@
+{
+  "name": "Livestock Trade — Auction Buyer",
+  "short_name": "DNBP Buyer",
+  "description": "Live Do Not Buy Price, Bid Check, and the digital red note book for the auction yard.",
+  "start_url": "/buyer",
+  "scope": "/buyer/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#1c63d6",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

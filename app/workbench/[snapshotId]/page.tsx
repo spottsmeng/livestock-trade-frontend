@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { OrderWorkbenchGrid } from "@/components/workbench/order-workbench-grid";
+import { PublishPanel } from "@/components/workbench/publish-panel";
 import { useAuthStore } from "@/lib/auth-store";
 import {
   type CorrectionRequest,
@@ -37,6 +38,7 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
   const [workingsByLineId, setWorkingsByLineId] = React.useState<Map<string, OrderWorkings>>(new Map());
   const [issuesByLineId, setIssuesByLineId] = React.useState<Map<string, ValidationIssue[]>>(new Map());
   const [openCorrectionColumnsByLineId, setOpenCorrectionColumnsByLineId] = React.useState<Map<string, Set<string>>>(new Map());
+  const [activeLineIds, setActiveLineIds] = React.useState<Set<string>>(new Set());
   const [lifecycleFilter, setLifecycleFilter] = React.useState<"ACTIVE" | "LOADED">("ACTIVE");
   // Starts true for the first paint; `load` only ever flips it false in its
   // `finally`, never true again synchronously inside the effect below.
@@ -45,14 +47,16 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
 
   const load = React.useCallback(async () => {
     try {
-      const [snap, lineRows, issueRows, correctionRows] = await Promise.all([
+      const [snap, lineRows, activeLineRows, issueRows, correctionRows] = await Promise.all([
         workbenchApi.getSnapshot(snapshotId, accessToken),
         workbenchApi.listLines(snapshotId, accessToken, lifecycleFilter),
+        workbenchApi.listLines(snapshotId, accessToken, "ACTIVE"),
         workbenchApi.listIssues(snapshotId, accessToken),
         workbenchApi.listCorrectionRequests(snapshotId, accessToken),
       ]);
       setSnapshot(snap);
       setLines(lineRows);
+      setActiveLineIds(new Set(activeLineRows.map((l) => l.id)));
 
       const issueMap = new Map<string, ValidationIssue[]>();
       for (const issue of issueRows) {
@@ -138,6 +142,15 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
           </Button>
         </div>
       </div>
+
+      {snapshot.status === "CALCULATED" || snapshot.status === "PUBLISHED" || snapshot.status === "SUPERSEDED" ? (
+        <PublishPanel
+          snapshotId={snapshot.id}
+          activeLineIds={activeLineIds}
+          issuesByLineId={issuesByLineId}
+          onChanged={() => void load()}
+        />
+      ) : null}
 
       {lines.length === 0 ? (
         <EmptyState title="No lines in this section" body="Switch to the other lifecycle tab, or recalculate." />
