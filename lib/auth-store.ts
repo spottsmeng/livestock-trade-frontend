@@ -31,6 +31,16 @@ function toCurrentUser(me: MeResponse): CurrentUser {
   return { id: me.id, email: me.email, role: me.role, orgId: me.org_id, mfaEnrolled: me.mfa_enrolled };
 }
 
+// Module-private — deliberately not part of AuthState. Coalesces concurrent
+// hydrate() calls (e.g. React Strict Mode's dev-only double-invoke of
+// AuthGuard's mount effect) into one /auth/refresh request instead of two,
+// since the refresh token rotates on use: two real concurrent calls would
+// have the second one replay an already-rotated token and trip reuse
+// detection, revoking the whole session. Fixing it here (rather than with a
+// ref guard in AuthGuard) makes hydrate() itself safe to call concurrently
+// for any reason, not just this one — the actual bug was that it wasn't.
+let hydrateInFlight: Promise<void> | null = null;
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   user: null,
@@ -53,13 +63,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   async hydrate() {
+    if (hydrateInFlight) return hydrateInFlight;
     set({ status: "loading" });
-    try {
-      const tokens = await apiFetch<TokenPair>("/auth/refresh", { method: "POST" });
-      await get().setSession(tokens.access_token);
-    } catch {
-      set({ accessToken: null, user: null, status: "unauthenticated" });
-    }
+    hydrateInFlight = (async () => {
+      try {
+        const tokens = await apiFetch<TokenPair>("/auth/refresh", { method: "POST" });
+        await get().setSession(tokens.access_token);
+      } catch {
+        set({ accessToken: null, user: null, status: "unauthenticated" });
+      } finally {
+        hydrateInFlight = null;
+      }
+    })();
+    return hydrateInFlight;
   },
 
   async setSession(accessToken) {
