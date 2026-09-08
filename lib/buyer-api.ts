@@ -62,6 +62,27 @@ export type BuyEntryResponse = {
   is_possible_duplicate: boolean;
 };
 
+// Matches backend/schemas/buyer.py::InstructionLineResponse/InstructionResponse
+// exactly — deliberately excludes peters_expectation/expected_livestock_cost
+// and every fill/reconciliation field (§2.2, §12.5).
+export type InstructionLine = {
+  contract_no: string | null;
+  species: string;
+  target_heads: string;
+  weight_requirement_kg: string;
+  dnbp_per_kg: string;
+};
+
+export type Instruction = {
+  instruction_id: string;
+  instruction_no: string;
+  trade_date: string;
+  status: string;
+  saleyard: string | null;
+  prepayment_note: string | null;
+  lines: InstructionLine[];
+};
+
 export type BulkSyncItemResult = {
   client_uuid: string;
   ok: boolean;
@@ -97,6 +118,12 @@ export const buyerApi = {
 
   deleteEntry: (id: string, accessToken: string | null) =>
     apiFetch<void>(`/buyer/entries/${id}`, { method: "DELETE", ...auth(accessToken) }),
+
+  getInstructionCurrent: (accessToken: string | null) =>
+    apiFetch<Instruction>("/buyer/instruction/current", auth(accessToken)),
+
+  acknowledgeInstruction: (instructionId: string, accessToken: string | null) =>
+    apiFetch<void>(`/buyer/instruction/${instructionId}/acknowledge`, { method: "POST", ...auth(accessToken) }),
 
   subscribePush: (
     body: { endpoint: string; p256dh: string; auth: string; ua?: string | null },

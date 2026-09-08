@@ -19,6 +19,7 @@ const _CONSOLE_NAV = [
   { href: "/benchmark-compare", label: () => strings.shell.nav.benchmarkCompare, ownerOnly: false },
   { href: "/correction-requests", label: () => strings.shell.nav.correctionRequests, ownerOnly: false },
   { href: "/reference-data", label: () => strings.shell.nav.referenceData, ownerOnly: false },
+  { href: "/buy-instructions", label: () => strings.shell.nav.buyInstructions, ownerOnly: false },
   { href: "/users", label: () => strings.shell.nav.users, ownerOnly: true },
 ] as const;
 
@@ -31,7 +32,9 @@ function ConsoleNav() {
     <nav className="flex items-center gap-1">
       {_CONSOLE_NAV.filter((item) => !item.ownerOnly || role === "OWNER").map((item) => {
         const target = item.href === "/owner" ? (role === "OWNER" ? "/owner" : "/accountant") : item.href;
-        const active = pathname === target || (item.href === "/workbench" && pathname?.startsWith("/workbench"));
+        const active =
+          pathname === target ||
+          ((item.href === "/workbench" || item.href === "/buy-instructions") && pathname?.startsWith(item.href));
         return (
           <Link
             key={item.href}
