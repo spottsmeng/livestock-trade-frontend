@@ -147,7 +147,12 @@ jobs:
           CORS_ALLOWED_ORIGINS: "http://localhost:3000"
         run: |
           uv run fastapi run main.py --port 8000 &
-          npx --yes wait-on http://localhost:8000/api/v1/health --timeout 60000
+          # wait-on's default http:// probe sends HEAD requests; the health
+          # route only defines GET (correctly 405s on HEAD) — the server
+          # was actually up the whole time in the run that caught this,
+          # wait-on just never saw a passing response. http-get:// forces
+          # a real GET.
+          npx --yes wait-on http-get://localhost:8000/api/v1/health --timeout 60000
         working-directory: backend
 
       - uses: pnpm/action-setup@v4
