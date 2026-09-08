@@ -17,9 +17,16 @@ const ROLE_HOME: Record<Role, string> = {
  * reach it. hydrate() calling /auth/refresh with credentials:"include" is
  * the actual auth check; this component just reacts to its result.
  */
-export function AuthGuard({ requiredRole, children }: { requiredRole: Role; children: React.ReactNode }) {
+export function AuthGuard({
+  requiredRole,
+  children,
+}: {
+  requiredRole: Role | Role[];
+  children: React.ReactNode;
+}) {
   const router = useRouter();
   const { status, user, hydrate } = useAuthStore();
+  const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
 
   React.useEffect(() => {
     if (status === "idle") void hydrate();
@@ -27,12 +34,15 @@ export function AuthGuard({ requiredRole, children }: { requiredRole: Role; chil
 
   React.useEffect(() => {
     if (status === "unauthenticated") router.replace("/login");
-    if (status === "authenticated" && user && user.role !== requiredRole) {
+    if (status === "authenticated" && user && !allowedRoles.includes(user.role)) {
       router.replace(ROLE_HOME[user.role]);
     }
+    // allowedRoles is derived fresh from requiredRole every render — depend
+    // on requiredRole itself so this effect doesn't re-run every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, user, requiredRole, router]);
 
-  if (status !== "authenticated" || !user || user.role !== requiredRole) {
+  if (status !== "authenticated" || !user || !allowedRoles.includes(user.role)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-sm text-fg-tertiary">Loading…</p>

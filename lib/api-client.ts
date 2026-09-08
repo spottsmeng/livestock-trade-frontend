@@ -26,14 +26,22 @@ type FetchOptions = {
  * into a typed ApiError instead of every caller re-parsing it.
  */
 export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
+  const headers: Record<string, string> = {};
+  if (!isFormData) headers["Content-Type"] = "application/json";
   if (options.accessToken) headers.Authorization = `Bearer ${options.accessToken}`;
+
+  // A FormData body (multipart file upload) must be handed to fetch as-is —
+  // stringifying it would send "[object FormData]", and setting our own
+  // Content-Type would drop the boundary the browser generates for it.
+  const body = options.body === undefined ? undefined : isFormData ? (options.body as FormData) : JSON.stringify(options.body);
 
   const response = await fetch(`${API_BASE_URL}/api/v1${path}`, {
     method: options.method ?? "GET",
     headers,
     credentials: "include",
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body,
   });
 
   if (response.status === 204) return undefined as T;
