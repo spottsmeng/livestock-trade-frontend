@@ -10,6 +10,7 @@ import { BuyerPerformancePanel } from "@/components/dashboard/buyer-performance-
 import { MarginBridgePanel } from "@/components/dashboard/margin-bridge-panel";
 import { FulfilmentPanel } from "@/components/dashboard/fulfilment-panel";
 import { ExceptionsPanel } from "@/components/dashboard/exceptions-panel";
+import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
 import {
@@ -83,6 +84,10 @@ function DashboardContent() {
         setExceptions(ex);
         if (ob.by_species.length > 0) setSpecies(ob.by_species[0].species);
       })
+      .catch((err) => {
+        if (cancelled) return;
+        toast({ title: err instanceof Error ? err.message : "Something went wrong", variant: "danger" });
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -97,6 +102,10 @@ function DashboardContent() {
       .getDnbpTrend(accessToken, species, days)
       .then((data) => {
         if (!cancelled) setDnbpTrend(data);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        toast({ title: err instanceof Error ? err.message : "Something went wrong", variant: "danger" });
       })
       .finally(() => {
         if (!cancelled) setTrendLoading(false);

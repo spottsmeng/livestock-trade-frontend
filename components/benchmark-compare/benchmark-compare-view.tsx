@@ -41,22 +41,15 @@ export function BenchmarkCompareView() {
         const latest = snapshots[0];
         if (!latest) return;
 
-        const [lines, active] = await Promise.all([
+        const [lines, active, workingsRows] = await Promise.all([
           workbenchApi.listLines(latest.id, accessToken, "ACTIVE"),
           referenceDataApi.getActive(accessToken),
+          workbenchApi.listWorkings(latest.id, accessToken),
         ]);
         setEverhealthFactors(active.dnbp_factor_by_species);
 
-        const withWorkings = await Promise.all(
-          lines.map(async (line) => {
-            try {
-              return { line, workings: await workbenchApi.getWorkings(line.id, accessToken) };
-            } catch {
-              return { line, workings: null };
-            }
-          })
-        );
-        setRows(withWorkings);
+        const workingsByLineId = new Map(workingsRows.map((w) => [w.order_line_id, w] as const));
+        setRows(lines.map((line) => ({ line, workings: workingsByLineId.get(line.id) ?? null })));
       } finally {
         setLoading(false);
       }

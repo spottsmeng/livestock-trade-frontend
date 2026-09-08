@@ -73,18 +73,8 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
       }
       setOpenCorrectionColumnsByLineId(openMap);
 
-      const workingsEntries = await Promise.all(
-        lineRows
-          .filter((l) => l.lifecycle === "ACTIVE")
-          .map(async (l) => {
-            try {
-              return [l.id, await workbenchApi.getWorkings(l.id, accessToken)] as const;
-            } catch {
-              return null;
-            }
-          })
-      );
-      setWorkingsByLineId(new Map(workingsEntries.filter((e): e is readonly [string, OrderWorkings] => e !== null)));
+      const workingsRows = await workbenchApi.listWorkings(snapshotId, accessToken);
+      setWorkingsByLineId(new Map(workingsRows.map((w) => [w.order_line_id, w] as const)));
     } finally {
       setLoading(false);
     }

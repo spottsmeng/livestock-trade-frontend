@@ -149,6 +149,8 @@ export const workbenchApi = {
     apiFetch<ValidationIssue[]>(`/snapshots/${snapshotId}/issues`, auth(accessToken)),
   getWorkings: (orderLineId: string, accessToken: string | null) =>
     apiFetch<OrderWorkings>(`/order-lines/${orderLineId}/workings`, auth(accessToken)),
+  listWorkings: (snapshotId: string, accessToken: string | null) =>
+    apiFetch<OrderWorkings[]>(`/snapshots/${snapshotId}/workings`, auth(accessToken)),
   getDnbpProof: (orderLineId: string, accessToken: string | null) =>
     apiFetch<DnbpProof>(`/order-lines/${orderLineId}/dnbp-proof`, auth(accessToken)),
   raiseCorrectionRequest: (
