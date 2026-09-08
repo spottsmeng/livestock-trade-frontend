@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "pretypecheck": "next typegen",
     "typecheck": "tsc --noEmit",
     "test:a11y": "playwright test"
   },
