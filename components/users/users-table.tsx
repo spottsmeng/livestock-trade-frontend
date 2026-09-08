@@ -178,7 +178,9 @@ export function UsersTable() {
               <th className="px-4 py-3 font-medium">{strings.users.role}</th>
               <th className="px-4 py-3 font-medium">{strings.users.status}</th>
               <th className="px-4 py-3 font-medium">{strings.users.lastActive}</th>
-              <th className="px-4 py-3 font-medium" />
+              <th className="px-4 py-3 font-medium">
+                <span className="sr-only">{strings.users.actions}</span>
+              </th>
             </tr>
           </thead>
           <tbody>

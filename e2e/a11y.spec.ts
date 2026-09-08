@@ -69,6 +69,34 @@ test.describe("Trading Console (OWNER)", () => {
   test("every OWNER-reachable console screen has zero axe violations", async ({ page }) => {
     await loginWithMfa(page, "bobby@example.com", BOBBY_MFA_SECRET);
     await scanRoutes(page, ["/owner", ...CONSOLE_ROUTES, "/users"]);
+
+    // /workbench/[snapshotId] is a dense, dynamic-route screen the plain
+    // route list above can't reach directly — needs a real snapshot id,
+    // discovered from whatever the dev DB already has (per this phase's
+    // own "check what's there before manufacturing new data" instruction).
+    // Reuses this same already-authenticated session rather than logging
+    // in again: a real run showed a second login's own /auth/me call
+    // landing after the scan above had already pushed bobby's §14 general
+    // rate-limit bucket past 100/min (real requests, correctly limited —
+    // scanning 9+ data-heavy pages in well under a minute is exactly the
+    // non-human-speed traffic that limit exists for), which silently
+    // stranded the second login on /login. One continuous session avoids
+    // that class of interaction entirely, and matches how a real user
+    // would navigate anyway.
+    await page.goto(`${BASE_URL}/workbench`);
+    await page.waitForLoadState("networkidle");
+    const firstSnapshotLink = page.locator('a[href^="/workbench/"]').first();
+    const count = await firstSnapshotLink.count();
+    if (count > 0) {
+      await firstSnapshotLink.click();
+      await page.waitForLoadState("networkidle");
+      await page
+        .getByText("Loading…", { exact: true })
+        .waitFor({ state: "hidden", timeout: 5000 })
+        .catch(() => {});
+      const results = await new AxeBuilder({ page }).analyze();
+      expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+    }
   });
 });
 

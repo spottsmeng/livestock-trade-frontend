@@ -159,6 +159,7 @@ export const strings = {
     role: "Role",
     status: "Status",
     lastActive: "Last active",
+    actions: "Actions",
     never: "Never",
     changeRole: "Change role",
     deactivate: "Deactivate",

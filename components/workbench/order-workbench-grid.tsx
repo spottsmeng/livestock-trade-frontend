@@ -286,7 +286,9 @@ export function OrderWorkbenchGrid({
             </th>
           </tr>
           <tr>
-            <th className="sticky left-0 z-10 border-b border-default bg-surface px-2 py-1" />
+            <th className="sticky left-0 z-10 border-b border-default bg-surface px-2 py-1">
+              <span className="sr-only">Status</span>
+            </th>
             {RECEIVED_COLUMNS.map((col) => (
               <th
                 key={col.key}
@@ -303,7 +305,9 @@ export function OrderWorkbenchGrid({
                 {col.label}
               </th>
             ))}
-            <th className="sticky right-0 z-10 border-b border-default bg-surface px-3 py-1.5" />
+            <th className="sticky right-0 z-10 border-b border-default bg-surface px-3 py-1.5">
+              <span className="sr-only">AC — Bing DNBP</span>
+            </th>
           </tr>
         </thead>
         <tbody>
