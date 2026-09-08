@@ -163,4 +163,11 @@ export const workbenchApi = {
     }),
   listCorrectionRequests: (snapshotId: string, accessToken: string | null) =>
     apiFetch<CorrectionRequest[]>(`/correction-requests?snapshot_id=${snapshotId}`, auth(accessToken)),
+  // §11.6 — the Correction Requests screen's queue spans every recent
+  // snapshot, not just one, so this omits the snapshot_id filter §9.3
+  // already makes optional.
+  listAllCorrectionRequests: (accessToken: string | null, status?: CorrectionStatus) =>
+    apiFetch<CorrectionRequest[]>(`/correction-requests${status ? `?status=${status}` : ""}`, auth(accessToken)),
+  withdrawCorrectionRequest: (requestId: string, accessToken: string | null) =>
+    apiFetch<CorrectionRequest>(`/correction-requests/${requestId}/withdraw`, { method: "POST", ...auth(accessToken) }),
 };

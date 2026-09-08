@@ -1,0 +1,155 @@
+"use client";
+
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useAuthStore } from "@/lib/auth-store";
+import { referenceDataApi } from "@/lib/reference-data-api";
+import { strings } from "@/lib/strings";
+import { workbenchApi, type OrderLine, type OrderWorkings } from "@/lib/workbench-api";
+
+type Row = {
+  line: OrderLine;
+  workings: OrderWorkings | null;
+};
+
+// §5.6: the financier method's benchmark is K / (1 + margin), so
+// margin's implied factor (1/(1+margin)) is recoverable directly from
+// already-ingested per-line data (dnbp_benchmark / nrv_per_kg) — no need
+// for the separately-stored, per-species required_margin table this system
+// doesn't currently ingest. More precise than a per-species average, since
+// it's derived from the exact line, not a lookup.
+function impliedFactor(row: Row): number | null {
+  if (row.line.benchmark_method !== "FINANCIER_MARGIN") return null;
+  const benchmark = row.line.dnbp_benchmark ? Number(row.line.dnbp_benchmark) : null;
+  const k = row.line.nrv_per_kg ? Number(row.line.nrv_per_kg) : null;
+  if (benchmark === null || k === null || k === 0) return null;
+  return benchmark / k;
+}
+
+export function BenchmarkCompareView() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const [rows, setRows] = React.useState<Row[]>([]);
+  const [everhealthFactors, setEverhealthFactors] = React.useState<Record<string, string>>({});
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const snapshots = await workbenchApi.listSnapshots(accessToken);
+        const latest = snapshots[0];
+        if (!latest) return;
+
+        const [lines, active] = await Promise.all([
+          workbenchApi.listLines(latest.id, accessToken, "ACTIVE"),
+          referenceDataApi.getActive(accessToken),
+        ]);
+        setEverhealthFactors(active.dnbp_factor_by_species);
+
+        const withWorkings = await Promise.all(
+          lines.map(async (line) => {
+            try {
+              return { line, workings: await workbenchApi.getWorkings(line.id, accessToken) };
+            } catch {
+              return { line, workings: null };
+            }
+          })
+        );
+        setRows(withWorkings);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [accessToken]);
+
+  if (loading) return <p className="text-sm text-fg-tertiary">Loading…</p>;
+  if (rows.length === 0) return <EmptyState title="No active lines to compare" />;
+
+  const bySpecies = new Map<string, Row[]>();
+  for (const row of rows) {
+    if (!row.line.species) continue;
+    bySpecies.set(row.line.species, [...(bySpecies.get(row.line.species) ?? []), row]);
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap gap-4 text-sm">
+        <Badge variant="accent">{strings.benchmarkCompare.sourceOfTruth}</Badge>
+        <Badge variant="neutral">{strings.benchmarkCompare.benchmarkOnly}</Badge>
+      </div>
+
+      <Card>
+        <p className="text-sm font-semibold text-fg-primary">{strings.benchmarkCompare.aggregateBySpecies}</p>
+        <div className="mt-3 flex flex-col gap-2">
+          {Array.from(bySpecies.entries()).map(([species, speciesRows]) => {
+            const aggregateAe = speciesRows.reduce((sum, r) => sum + Number(r.workings?.diff_vs_benchmark ?? 0), 0);
+            return (
+              <div key={species} className="flex items-center justify-between text-sm">
+                <span className="font-medium">{species}</span>
+                <span className="tabular-nums">
+                  Σ AE {aggregateAe >= 0 ? "+" : ""}
+                  {aggregateAe.toFixed(2)} AUD/kg across {speciesRows.length} line(s)
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      <Card className="overflow-x-auto p-0">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-subtle text-left text-xs uppercase tracking-wide text-fg-tertiary">
+              <th className="px-4 py-3 font-medium">Contract</th>
+              <th className="px-4 py-3 font-medium">Species</th>
+              <th className="px-4 py-3 font-medium tabular-nums">{strings.benchmarkCompare.sourceOfTruth}</th>
+              <th className="px-4 py-3 font-medium tabular-nums">{strings.benchmarkCompare.benchmarkOnly}</th>
+              <th className="px-4 py-3 font-medium tabular-nums">AE (diff)</th>
+              <th className="px-4 py-3 font-medium tabular-nums">{strings.benchmarkCompare.impliedFactor}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => {
+              const factor = impliedFactor(row);
+              const everhealthFactor = row.line.species ? everhealthFactors[row.line.species] : undefined;
+              const ae = row.workings?.diff_vs_benchmark;
+              return (
+                <tr key={row.line.id} className="border-b border-subtle last:border-0">
+                  <td className="px-4 py-3">{row.line.contract_no}</td>
+                  <td className="px-4 py-3">{row.line.species}</td>
+                  <td className="px-4 py-3 font-semibold tabular-nums text-accent-default">
+                    {row.workings?.bing_dnbp ? `$${Number(row.workings.bing_dnbp).toFixed(4)}` : "—"}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums text-fg-secondary">
+                    {row.line.dnbp_benchmark ? `$${Number(row.line.dnbp_benchmark).toFixed(4)}` : strings.benchmarkCompare.noBenchmark}
+                  </td>
+                  <td
+                    className={
+                      "px-4 py-3 tabular-nums " +
+                      (ae && Math.abs(Number(ae)) / Number(row.workings?.bing_dnbp || 1) > 0.15
+                        ? "font-semibold text-status-breach-fg"
+                        : "text-fg-secondary")
+                    }
+                  >
+                    {ae ? Number(ae).toFixed(4) : "—"}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums text-fg-secondary">
+                    {factor !== null ? (
+                      <span>
+                        {factor.toFixed(4)}
+                        {everhealthFactor ? ` (Everhealth ${Number(everhealthFactor).toFixed(2)})` : ""}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </Card>
+    </div>
+  );
+}
