@@ -38,6 +38,16 @@ async function scanRoutes(page: import("@playwright/test").Page, routes: string[
     await test.step(route, async () => {
       await page.goto(`${BASE_URL}${route}`);
       await page.waitForLoadState("networkidle");
+      // networkidle alone raced ahead of client-fetched content on a real
+      // run (confirmed live: /users scanned mid-fetch, giving a false "0
+      // violations" pass on its still-empty "Loading…" placeholder instead
+      // of the real table). This codebase consistently renders that exact
+      // string while a page's own useEffect fetch is in flight — wait for
+      // it to clear, best-effort, so the scan always sees real content.
+      await page
+        .getByText("Loading…", { exact: true })
+        .waitFor({ state: "hidden", timeout: 5000 })
+        .catch(() => {});
       const results = await new AxeBuilder({ page }).analyze();
       if (results.violations.length > 0) {
         failures.push(`${route}:\n${JSON.stringify(results.violations, null, 2)}`);

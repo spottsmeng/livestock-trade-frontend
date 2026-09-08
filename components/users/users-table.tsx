@@ -189,7 +189,11 @@ export function UsersTable() {
                   {user.id === currentUserId ? <span className="ml-2 text-xs text-fg-tertiary">(you)</span> : null}
                 </td>
                 <td className="px-4 py-3">
+                  <label htmlFor={`role-${user.id}`} className="sr-only">
+                    {strings.users.role} — {user.email}
+                  </label>
                   <select
+                    id={`role-${user.id}`}
                     className="rounded-md border border-default bg-surface px-2 py-1 text-sm text-fg-primary disabled:cursor-not-allowed disabled:opacity-50"
                     value={user.role}
                     disabled={busyId === user.id}
