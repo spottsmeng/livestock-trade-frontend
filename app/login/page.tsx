@@ -44,53 +44,62 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-canvas p-6">
-      <div className="self-end">
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="flex items-center justify-end border-b border-subtle bg-surface px-6 py-4">
         <ThemeToggle />
-      </div>
-      <Card className="w-full max-w-sm">
-        <h1 className="mb-6 text-xl font-semibold text-fg-primary">{strings.auth.login.title}</h1>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email">{strings.auth.login.emailLabel}</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+      </header>
+      <main className="flex flex-1 flex-col items-center justify-center gap-8 p-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent-default text-lg font-bold text-accent-fg">
+            L
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="password">{strings.auth.login.passwordLabel}</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          {needsMfa ? (
+          <h1 className="text-xl font-semibold text-fg-primary">Livestock Trade Management</h1>
+          <p className="text-sm text-fg-tertiary">Trading Console</p>
+        </div>
+        <Card className="w-full max-w-sm">
+          <h2 className="mb-6 text-lg font-semibold text-fg-primary">{strings.auth.login.title}</h2>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="totp">{strings.auth.login.totpLabel}</Label>
+              <Label htmlFor="email">{strings.auth.login.emailLabel}</Label>
               <Input
-                id="totp"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                value={totpCode}
-                onChange={(e) => setTotpCode(e.target.value)}
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              <p className="text-xs text-fg-tertiary">{strings.auth.login.totpHint}</p>
             </div>
-          ) : null}
-          <Button type="submit" disabled={submitting} className="mt-2">
-            {submitting ? strings.auth.login.submitting : strings.auth.login.submit}
-          </Button>
-        </form>
-      </Card>
-    </main>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">{strings.auth.login.passwordLabel}</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            {needsMfa ? (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="totp">{strings.auth.login.totpLabel}</Label>
+                <Input
+                  id="totp"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value)}
+                />
+                <p className="text-xs text-fg-tertiary">{strings.auth.login.totpHint}</p>
+              </div>
+            ) : null}
+            <Button type="submit" disabled={submitting} className="mt-2">
+              {submitting ? strings.auth.login.submitting : strings.auth.login.submit}
+            </Button>
+          </form>
+        </Card>
+      </main>
+    </div>
   );
 }
