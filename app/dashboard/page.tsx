@@ -10,9 +10,9 @@ import { BuyerPerformancePanel } from "@/components/dashboard/buyer-performance-
 import { MarginBridgePanel } from "@/components/dashboard/margin-bridge-panel";
 import { FulfilmentPanel } from "@/components/dashboard/fulfilment-panel";
 import { ExceptionsPanel } from "@/components/dashboard/exceptions-panel";
-import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
+import { withErrorToast } from "@/lib/with-error-toast";
 import {
   analyticsApi,
   type OverviewResponse,
@@ -66,15 +66,16 @@ function DashboardContent() {
     // reset it synchronously here (react-hooks/set-state-in-effect: a
     // setState call as the first statement in an effect body causes a
     // cascading extra render).
-    Promise.all([
-      analyticsApi.getOverview(accessToken),
-      analyticsApi.getOrderBook(accessToken),
-      analyticsApi.getBuyerPerformance(accessToken),
-      analyticsApi.getMarginBridge(accessToken),
-      analyticsApi.getFulfilment(accessToken),
-      analyticsApi.getBreaches(accessToken),
-    ])
-      .then(([ov, ob, bp, mb, ff, ex]) => {
+    (async () => {
+      await withErrorToast(async () => {
+        const [ov, ob, bp, mb, ff, ex] = await Promise.all([
+          analyticsApi.getOverview(accessToken),
+          analyticsApi.getOrderBook(accessToken),
+          analyticsApi.getBuyerPerformance(accessToken),
+          analyticsApi.getMarginBridge(accessToken),
+          analyticsApi.getFulfilment(accessToken),
+          analyticsApi.getBreaches(accessToken),
+        ]);
         if (cancelled) return;
         setOverview(ov);
         setOrderBook(ob);
@@ -83,14 +84,9 @@ function DashboardContent() {
         setFulfilment(ff);
         setExceptions(ex);
         if (ob.by_species.length > 0) setSpecies(ob.by_species[0].species);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        toast({ title: err instanceof Error ? err.message : "Something went wrong", variant: "danger" });
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
       });
+      if (!cancelled) setLoading(false);
+    })();
     return () => {
       cancelled = true;
     };
@@ -98,18 +94,13 @@ function DashboardContent() {
 
   React.useEffect(() => {
     let cancelled = false;
-    analyticsApi
-      .getDnbpTrend(accessToken, species, days)
-      .then((data) => {
+    (async () => {
+      await withErrorToast(async () => {
+        const data = await analyticsApi.getDnbpTrend(accessToken, species, days);
         if (!cancelled) setDnbpTrend(data);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        toast({ title: err instanceof Error ? err.message : "Something went wrong", variant: "danger" });
-      })
-      .finally(() => {
-        if (!cancelled) setTrendLoading(false);
       });
+      if (!cancelled) setTrendLoading(false);
+    })();
     return () => {
       cancelled = true;
     };

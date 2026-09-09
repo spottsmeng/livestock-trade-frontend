@@ -26,6 +26,7 @@ import {
   type SpeciesRow,
 } from "@/lib/reference-data-api";
 import { strings } from "@/lib/strings";
+import { withErrorToast } from "@/lib/with-error-toast";
 
 function EditForm({
   active,
@@ -249,14 +250,16 @@ export function DnbpModelPanel() {
 
   const load = React.useCallback(async () => {
     try {
-      const [activeConfig, speciesRows, versionRows] = await Promise.all([
-        referenceDataApi.getActive(accessToken),
-        referenceDataApi.listSpecies(accessToken),
-        referenceDataApi.listVersions(accessToken),
-      ]);
-      setActive(activeConfig);
-      setSpecies(speciesRows.filter((s) => s.is_active));
-      setVersions(versionRows);
+      await withErrorToast(async () => {
+        const [activeConfig, speciesRows, versionRows] = await Promise.all([
+          referenceDataApi.getActive(accessToken),
+          referenceDataApi.listSpecies(accessToken),
+          referenceDataApi.listVersions(accessToken),
+        ]);
+        setActive(activeConfig);
+        setSpecies(speciesRows.filter((s) => s.is_active));
+        setVersions(versionRows);
+      });
     } finally {
       setLoading(false);
     }

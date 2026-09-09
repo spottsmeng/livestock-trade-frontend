@@ -10,6 +10,7 @@ import { useAuthStore } from "@/lib/auth-store";
 import { ApiError } from "@/lib/api-client";
 import { referenceDataApi, type ProductTypeRow, type SpeciesRow } from "@/lib/reference-data-api";
 import { strings } from "@/lib/strings";
+import { withErrorToast } from "@/lib/with-error-toast";
 
 function AddRow({
   onAdd,
@@ -60,12 +61,14 @@ export function RegistriesPanel() {
 
   const load = React.useCallback(async () => {
     try {
-      const [speciesRows, productTypeRows] = await Promise.all([
-        referenceDataApi.listSpecies(accessToken),
-        referenceDataApi.listProductTypes(accessToken),
-      ]);
-      setSpecies(speciesRows);
-      setProductTypes(productTypeRows);
+      await withErrorToast(async () => {
+        const [speciesRows, productTypeRows] = await Promise.all([
+          referenceDataApi.listSpecies(accessToken),
+          referenceDataApi.listProductTypes(accessToken),
+        ]);
+        setSpecies(speciesRows);
+        setProductTypes(productTypeRows);
+      });
     } finally {
       setLoading(false);
     }

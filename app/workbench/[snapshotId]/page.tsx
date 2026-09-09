@@ -18,6 +18,7 @@ import {
   type ValidationIssue,
   workbenchApi,
 } from "@/lib/workbench-api";
+import { withErrorToast } from "@/lib/with-error-toast";
 
 export default function WorkbenchSnapshotPage({ params }: { params: Promise<{ snapshotId: string }> }) {
   const { snapshotId } = use(params);
@@ -47,34 +48,36 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
 
   const load = React.useCallback(async () => {
     try {
-      const [snap, lineRows, activeLineRows, issueRows, correctionRows] = await Promise.all([
-        workbenchApi.getSnapshot(snapshotId, accessToken),
-        workbenchApi.listLines(snapshotId, accessToken, lifecycleFilter),
-        workbenchApi.listLines(snapshotId, accessToken, "ACTIVE"),
-        workbenchApi.listIssues(snapshotId, accessToken),
-        workbenchApi.listCorrectionRequests(snapshotId, accessToken),
-      ]);
-      setSnapshot(snap);
-      setLines(lineRows);
-      setActiveLineIds(new Set(activeLineRows.map((l) => l.id)));
+      await withErrorToast(async () => {
+        const [snap, lineRows, activeLineRows, issueRows, correctionRows] = await Promise.all([
+          workbenchApi.getSnapshot(snapshotId, accessToken),
+          workbenchApi.listLines(snapshotId, accessToken, lifecycleFilter),
+          workbenchApi.listLines(snapshotId, accessToken, "ACTIVE"),
+          workbenchApi.listIssues(snapshotId, accessToken),
+          workbenchApi.listCorrectionRequests(snapshotId, accessToken),
+        ]);
+        setSnapshot(snap);
+        setLines(lineRows);
+        setActiveLineIds(new Set(activeLineRows.map((l) => l.id)));
 
-      const issueMap = new Map<string, ValidationIssue[]>();
-      for (const issue of issueRows) {
-        issueMap.set(issue.order_line_id, [...(issueMap.get(issue.order_line_id) ?? []), issue]);
-      }
-      setIssuesByLineId(issueMap);
+        const issueMap = new Map<string, ValidationIssue[]>();
+        for (const issue of issueRows) {
+          issueMap.set(issue.order_line_id, [...(issueMap.get(issue.order_line_id) ?? []), issue]);
+        }
+        setIssuesByLineId(issueMap);
 
-      const openMap = new Map<string, Set<string>>();
-      for (const request of correctionRows as CorrectionRequest[]) {
-        if (request.status !== "OPEN") continue;
-        const existing = openMap.get(request.order_line_id) ?? new Set<string>();
-        existing.add(request.column_ref);
-        openMap.set(request.order_line_id, existing);
-      }
-      setOpenCorrectionColumnsByLineId(openMap);
+        const openMap = new Map<string, Set<string>>();
+        for (const request of correctionRows as CorrectionRequest[]) {
+          if (request.status !== "OPEN") continue;
+          const existing = openMap.get(request.order_line_id) ?? new Set<string>();
+          existing.add(request.column_ref);
+          openMap.set(request.order_line_id, existing);
+        }
+        setOpenCorrectionColumnsByLineId(openMap);
 
-      const workingsRows = await workbenchApi.listWorkings(snapshotId, accessToken);
-      setWorkingsByLineId(new Map(workingsRows.map((w) => [w.order_line_id, w] as const)));
+        const workingsRows = await workbenchApi.listWorkings(snapshotId, accessToken);
+        setWorkingsByLineId(new Map(workingsRows.map((w) => [w.order_line_id, w] as const)));
+      });
     } finally {
       setLoading(false);
     }
@@ -86,12 +89,11 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
 
   async function handleCalculate() {
     setCalculating(true);
-    try {
+    await withErrorToast(async () => {
       await workbenchApi.calculateSnapshot(snapshotId, accessToken);
       await load();
-    } finally {
-      setCalculating(false);
-    }
+    }, "Could not calculate this snapshot");
+    setCalculating(false);
   }
 
   if (loading && !snapshot) {

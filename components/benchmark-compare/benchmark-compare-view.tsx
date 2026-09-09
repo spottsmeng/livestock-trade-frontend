@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { useAuthStore } from "@/lib/auth-store";
 import { referenceDataApi } from "@/lib/reference-data-api";
 import { strings } from "@/lib/strings";
+import { withErrorToast } from "@/lib/with-error-toast";
 import { workbenchApi, type OrderLine, type OrderWorkings } from "@/lib/workbench-api";
 
 type Row = {
@@ -36,7 +37,7 @@ export function BenchmarkCompareView() {
 
   React.useEffect(() => {
     (async () => {
-      try {
+      await withErrorToast(async () => {
         const snapshots = await workbenchApi.listSnapshots(accessToken);
         const latest = snapshots[0];
         if (!latest) return;
@@ -50,9 +51,8 @@ export function BenchmarkCompareView() {
 
         const workingsByLineId = new Map(workingsRows.map((w) => [w.order_line_id, w] as const));
         setRows(lines.map((line) => ({ line, workings: workingsByLineId.get(line.id) ?? null })));
-      } finally {
-        setLoading(false);
-      }
+      });
+      setLoading(false);
     })();
   }, [accessToken]);
 
