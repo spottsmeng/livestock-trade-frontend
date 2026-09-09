@@ -29,6 +29,7 @@ export type UploadPreview = {
     new_lines: { contract_no: string | null; species: string | null; lifecycle: Lifecycle }[];
     changed_lines: { identity_key: (string | null)[]; changes: { field: string; previous: unknown; current: unknown }[] }[];
   };
+  duplicate_of_current: { snapshot_id: string; uploaded_by_email: string; uploaded_at: string } | null;
 };
 
 export type CalculateSummary = {

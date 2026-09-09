@@ -12,6 +12,14 @@ import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { type Snapshot, type UploadPreview, workbenchApi } from "@/lib/workbench-api";
 
+function formatRelativeTime(isoString: string): string {
+  const minutesAgo = Math.max(0, Math.round((Date.now() - new Date(isoString).getTime()) / 60000));
+  if (minutesAgo === 0) return "just now";
+  if (minutesAgo < 60) return `${minutesAgo} min ago`;
+  const hoursAgo = Math.round(minutesAgo / 60);
+  return `${hoursAgo} hour${hoursAgo === 1 ? "" : "s"} ago`;
+}
+
 export default function WorkbenchListPage() {
   return (
     <AuthGuard requiredRole={["OWNER", "ACCOUNTANT"]}>
@@ -22,16 +30,26 @@ export default function WorkbenchListPage() {
   );
 }
 
+type Stage = "idle" | "uploading" | "committing" | "calculating";
+
+const STAGE_LABEL: Record<Exclude<Stage, "idle">, string> = {
+  uploading: "Uploading & parsing spreadsheet…",
+  committing: "Committing snapshot…",
+  calculating: "Calculating…",
+};
+
 function WorkbenchListContent() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const [snapshots, setSnapshots] = React.useState<Snapshot[]>([]);
   const [preview, setPreview] = React.useState<UploadPreview | null>(null);
   const [file, setFile] = React.useState<File | null>(null);
-  const [busy, setBusy] = React.useState(false);
+  const [stage, setStage] = React.useState<Stage>("idle");
+  const [dragActive, setDragActive] = React.useState(false);
   // Starts true (first paint is always "loading") rather than being set
   // synchronously inside the effect below — only the async continuation
   // (after the awaited fetch) ever calls setLoading(false).
   const [loading, setLoading] = React.useState(true);
+  const busy = stage !== "idle";
 
   const loadSnapshots = React.useCallback(async () => {
     try {
@@ -45,32 +63,42 @@ function WorkbenchListContent() {
     void loadSnapshots();
   }, [loadSnapshots]);
 
+  function selectFile(candidate: File | null) {
+    if (candidate && !candidate.name.toLowerCase().endsWith(".xlsx")) {
+      toast({ title: "Only .xlsx files are supported", variant: "danger" });
+      return;
+    }
+    setFile(candidate);
+    setPreview(null);
+  }
+
   async function handlePreview() {
     if (!file) return;
-    setBusy(true);
+    setStage("uploading");
     try {
       setPreview(await workbenchApi.uploadPreview(file, accessToken));
-    } catch {
-      toast({ title: "Could not parse this file", variant: "danger" });
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Could not parse this file", variant: "danger" });
     } finally {
-      setBusy(false);
+      setStage("idle");
     }
   }
 
   async function handleConfirm() {
     if (!preview) return;
-    setBusy(true);
     try {
+      setStage("committing");
       const snapshot = await workbenchApi.commitSnapshot(preview.preview_id, accessToken);
+      setStage("calculating");
       await workbenchApi.calculateSnapshot(snapshot.id, accessToken);
       toast({ title: "Snapshot committed and calculated" });
       setPreview(null);
       setFile(null);
       await loadSnapshots();
-    } catch {
-      toast({ title: "Could not commit this snapshot", variant: "danger" });
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Could not commit this snapshot", variant: "danger" });
     } finally {
-      setBusy(false);
+      setStage("idle");
     }
   }
 
@@ -83,27 +111,54 @@ function WorkbenchListContent() {
           previous snapshot is shown before anything is committed.
         </p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <label htmlFor="upload-file" className="sr-only">
-            Select .xlsx file to upload
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragActive(true);
+          }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragActive(false);
+            selectFile(e.dataTransfer.files?.[0] ?? null);
+          }}
+          className={`mt-4 flex flex-col items-center gap-2 rounded-md border-2 border-dashed p-6 text-center transition-colors ${
+            dragActive ? "border-accent-default bg-accent-subtle" : "border-default bg-sunken"
+          }`}
+        >
+          <label htmlFor="upload-file" className="cursor-pointer text-sm text-fg-secondary">
+            {file ? (
+              <span className="font-medium text-fg-primary">{file.name}</span>
+            ) : (
+              <>
+                <span className="font-medium text-accent-default">Click to browse</span> or drag a .xlsx file here
+              </>
+            )}
           </label>
           <input
             id="upload-file"
             type="file"
             accept=".xlsx"
-            onChange={(e) => {
-              setFile(e.target.files?.[0] ?? null);
-              setPreview(null);
-            }}
-            className="text-sm text-fg-primary"
+            onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
+            className="sr-only"
           />
           <Button size="sm" onClick={handlePreview} disabled={!file || busy}>
-            {busy && !preview ? "Parsing…" : "Preview"}
+            {stage === "uploading" ? STAGE_LABEL.uploading : "Preview"}
           </Button>
         </div>
 
         {preview ? (
           <div className="mt-4 rounded-md border border-default bg-sunken p-4">
+            {preview.duplicate_of_current ? (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mb-3 rounded-md border border-status-close-border bg-status-close-bg px-3 py-2 text-sm font-medium text-status-close-fg"
+              >
+                This file looks identical to the current snapshot — uploaded {formatRelativeTime(preview.duplicate_of_current.uploaded_at)}{" "}
+                by {preview.duplicate_of_current.uploaded_by_email}. You can still commit it if this is intentional.
+              </div>
+            ) : null}
             <p className="text-sm text-fg-primary">
               Detected layout: <span className="font-medium">{String(preview.detected_layout.strategy)}</span>
             </p>
@@ -115,7 +170,7 @@ function WorkbenchListContent() {
               → {preview.diff.summary.moved_to_loaded_count} moved to loaded · ⊘ {preview.diff.summary.removed_count} removed
             </p>
             <Button size="sm" className="mt-3" onClick={handleConfirm} disabled={busy}>
-              {busy ? "Committing…" : "Confirm and commit"}
+              {stage === "committing" || stage === "calculating" ? STAGE_LABEL[stage] : "Confirm and commit"}
             </Button>
           </div>
         ) : null}
