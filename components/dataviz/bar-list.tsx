@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/cn";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
 /**
  * Ranked magnitude comparison across named categories (e.g. exposure by
@@ -58,23 +59,25 @@ export function BarList({
         ))}
       </ul>
 
-      <table className="sr-only">
-        <caption>{valueLabel} by category</caption>
-        <thead>
-          <tr>
-            <th scope="col">Category</th>
-            <th scope="col">{valueLabel}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.label}>
-              <td>{row.label}</td>
-              <td>{formatValue(row.value)}</td>
+      <VisuallyHidden>
+        <table>
+          <caption>{valueLabel} by category</caption>
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">{valueLabel}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.label}>
+                <td>{row.label}</td>
+                <td>{formatValue(row.value)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </VisuallyHidden>
     </div>
   );
 }

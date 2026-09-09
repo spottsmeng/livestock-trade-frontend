@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/cn";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
 export type GroupedBarRow = { label: string; a: number; b: number };
 
@@ -71,27 +72,29 @@ export function GroupedBarChart({
         ))}
       </ul>
 
-      <table className="sr-only">
-        <caption>
-          {labelA} versus {labelB}, by trade date
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Trade date</th>
-            <th scope="col">{labelA}</th>
-            <th scope="col">{labelB}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.label}>
-              <td>{row.label}</td>
-              <td>{formatValue(row.a)}</td>
-              <td>{formatValue(row.b)}</td>
+      <VisuallyHidden>
+        <table>
+          <caption>
+            {labelA} versus {labelB}, by trade date
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Trade date</th>
+              <th scope="col">{labelA}</th>
+              <th scope="col">{labelB}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.label}>
+                <td>{row.label}</td>
+                <td>{formatValue(row.a)}</td>
+                <td>{formatValue(row.b)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </VisuallyHidden>
     </div>
   );
 }

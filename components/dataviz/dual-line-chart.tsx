@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/cn";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
 export type LinePoint = { x: string; y: number };
 
@@ -115,36 +116,38 @@ export function DualLineChart({
         ))}
       </svg>
 
-      <table className="sr-only">
-        <caption>
-          {heroLabel} versus {referenceLabel}
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">{heroLabel}</th>
-            <th scope="col">{referenceLabel}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {labels.map((label) => {
-            // A label (date) can carry more than one point — e.g. two
-            // publications on the same calendar day — so every matching
-            // value is listed, not just the first (a .find() here would
-            // silently drop the rest from the accessible table view while
-            // the chart itself still plots them).
-            const hs = hero.filter((p) => p.x === label);
-            const rs = reference.filter((p) => p.x === label);
-            return (
-              <tr key={label}>
-                <td>{label}</td>
-                <td>{hs.length ? hs.map((p) => formatValue(p.y)).join(", ") : "—"}</td>
-                <td>{rs.length ? rs.map((p) => formatValue(p.y)).join(", ") : "—"}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <VisuallyHidden>
+        <table>
+          <caption>
+            {heroLabel} versus {referenceLabel}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">{heroLabel}</th>
+              <th scope="col">{referenceLabel}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {labels.map((label) => {
+              // A label (date) can carry more than one point — e.g. two
+              // publications on the same calendar day — so every matching
+              // value is listed, not just the first (a .find() here would
+              // silently drop the rest from the accessible table view while
+              // the chart itself still plots them).
+              const hs = hero.filter((p) => p.x === label);
+              const rs = reference.filter((p) => p.x === label);
+              return (
+                <tr key={label}>
+                  <td>{label}</td>
+                  <td>{hs.length ? hs.map((p) => formatValue(p.y)).join(", ") : "—"}</td>
+                  <td>{rs.length ? rs.map((p) => formatValue(p.y)).join(", ") : "—"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </VisuallyHidden>
     </div>
   );
 }
