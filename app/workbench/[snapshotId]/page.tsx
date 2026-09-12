@@ -36,6 +36,7 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const [snapshot, setSnapshot] = React.useState<Snapshot | null>(null);
   const [lines, setLines] = React.useState<OrderLine[]>([]);
+  const [activeLines, setActiveLines] = React.useState<OrderLine[]>([]);
   const [workingsByLineId, setWorkingsByLineId] = React.useState<Map<string, OrderWorkings>>(new Map());
   const [issuesByLineId, setIssuesByLineId] = React.useState<Map<string, ValidationIssue[]>>(new Map());
   const [openCorrectionColumnsByLineId, setOpenCorrectionColumnsByLineId] = React.useState<Map<string, Set<string>>>(new Map());
@@ -58,6 +59,7 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
         ]);
         setSnapshot(snap);
         setLines(lineRows);
+        setActiveLines(activeLineRows);
         setActiveLineIds(new Set(activeLineRows.map((l) => l.id)));
 
         const issueMap = new Map<string, ValidationIssue[]>();
@@ -86,6 +88,8 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
   React.useEffect(() => {
     void load();
   }, [load]);
+
+  const lineById = React.useMemo(() => new Map(activeLines.map((l) => [l.id, l] as const)), [activeLines]);
 
   async function handleCalculate() {
     setCalculating(true);
@@ -141,6 +145,7 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
           snapshotId={snapshot.id}
           activeLineIds={activeLineIds}
           issuesByLineId={issuesByLineId}
+          lineById={lineById}
           onChanged={() => void load()}
         />
       ) : null}
