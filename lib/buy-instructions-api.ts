@@ -1,4 +1,4 @@
-import { apiFetch, API_BASE_URL, ApiError } from "./api-client";
+import { apiFetch, apiFetchBlob } from "./api-client";
 
 export type BuyInstructionFill = {
   id: string;
@@ -107,21 +107,6 @@ export const buyInstructionsApi = {
   getReconciliation: (id: string, accessToken: string | null) =>
     apiFetch<Reconciliation>(`/buy-instructions/${id}/reconciliation`, auth(accessToken)),
 
-  /**
-   * Export isn't a JSON route — apiFetch always requests/parses JSON, so
-   * this hits fetch directly and hands back a Blob for the caller to save.
-   * Same auth/credentials shape as apiFetch, just a different response type.
-   */
-  async downloadExport(id: string, format: "pdf" | "xlsx", accessToken: string | null): Promise<Blob> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/buy-instructions/${id}/export?format=${format}`, {
-      credentials: "include",
-      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-    });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      const err = payload?.error ?? { code: "UNKNOWN_ERROR", message: "Export failed.", details: null };
-      throw new ApiError(response.status, err.code, err.message, err.details);
-    }
-    return response.blob();
-  },
+  downloadExport: (id: string, format: "pdf" | "xlsx", accessToken: string | null) =>
+    apiFetchBlob(`/buy-instructions/${id}/export?format=${format}`, auth(accessToken)),
 };
