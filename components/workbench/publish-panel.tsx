@@ -4,6 +4,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -72,15 +73,24 @@ export function PublishPanel({
   issuesByLineId,
   lineById,
   onChanged,
+  onIssuesAcknowledged,
 }: {
   snapshotId: string;
   activeLineIds: Set<string>;
   issuesByLineId: Map<string, ValidationIssue[]>;
   lineById: Map<string, OrderLine>;
+  /** For publish itself — that also changes the snapshot's own status, which
+   * lives outside anything this panel tracks locally, so a real reload is
+   * warranted there. */
   onChanged: () => void;
+  /** Acknowledging can only ever remove these issue ids from
+   * issuesByLineId — nothing else on the page depends on them — so the
+   * parent patches its local state directly instead of a full reload. */
+  onIssuesAcknowledged: (issueIds: string[]) => void;
 }) {
   const accessToken = useAuthStore((s) => s.accessToken);
-  const [ackingLineId, setAckingLineId] = React.useState<string | null>(null);
+  const [selectedLineIds, setSelectedLineIds] = React.useState<Set<string>>(new Set());
+  const [acknowledging, setAcknowledging] = React.useState(false);
   const [warningsExpanded, setWarningsExpanded] = React.useState(false);
   const [publishing, setPublishing] = React.useState(false);
   const [published, setPublished] = React.useState<PublicationDetail | null>(
@@ -157,17 +167,47 @@ export function PublishPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-subscribe when the published id itself changes
   }, [published?.id]);
 
-  async function handleAcknowledgeLine(group: LineIssueGroup) {
-    setAckingLineId(group.lineId);
+  const selectAllRef = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate =
+        selectedLineIds.size > 0 && selectedLineIds.size < lineGroups.length;
+    }
+  }, [selectedLineIds, lineGroups.length]);
+
+  function toggleLine(lineId: string) {
+    setSelectedLineIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(lineId)) next.delete(lineId);
+      else next.add(lineId);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedLineIds((prev) =>
+      prev.size === lineGroups.length ? new Set() : new Set(lineGroups.map((g) => g.lineId)),
+    );
+  }
+
+  async function handleAcknowledgeSelected() {
+    const groups = lineGroups.filter((g) => selectedLineIds.has(g.lineId));
+    if (groups.length === 0) return;
+    setAcknowledging(true);
     try {
       await Promise.all(
-        group.issues.map((issue) =>
-          publicationsApi.acknowledgeIssue(snapshotId, issue.id, accessToken),
+        groups.flatMap((group) =>
+          group.issues.map((issue) =>
+            publicationsApi.acknowledgeIssue(snapshotId, issue.id, accessToken),
+          ),
         ),
       );
-      onChanged();
+      onIssuesAcknowledged(groups.flatMap((group) => group.issues.map((issue) => issue.id)));
+      setSelectedLineIds(new Set());
+    } catch {
+      toast({ title: strings.publication.publish.couldNotAcknowledge, variant: "danger" });
     } finally {
-      setAckingLineId(null);
+      setAcknowledging(false);
     }
   }
 
@@ -241,6 +281,26 @@ export function PublishPanel({
           </button>
           {warningsExpanded ? (
             <div id="publish-warnings-detail" className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-3 border-b border-subtle pb-2">
+                <label className="flex items-center gap-2 text-sm text-fg-secondary">
+                  <Checkbox
+                    ref={selectAllRef}
+                    checked={lineGroups.length > 0 && selectedLineIds.size === lineGroups.length}
+                    onChange={toggleSelectAll}
+                    aria-label={strings.publication.publish.selectAll}
+                  />
+                  {strings.publication.publish.selectAll}
+                </label>
+                <Button
+                  size="sm"
+                  onClick={handleAcknowledgeSelected}
+                  disabled={selectedLineIds.size === 0 || acknowledging}
+                >
+                  {acknowledging
+                    ? strings.publication.publish.acknowledgingSelected
+                    : `${strings.publication.publish.acknowledgeSelected} (${selectedLineIds.size})`}
+                </Button>
+              </div>
               {lineGroups.map((group) => {
                 const label = lineLabel(group.line);
                 const chips = new Map<string, "close" | "neutral">();
@@ -255,9 +315,16 @@ export function PublishPanel({
                 return (
                   <div
                     key={group.lineId}
-                    className="rounded-md border border-subtle px-3 py-2.5 text-sm"
+                    className="flex items-start gap-3 rounded-md border border-subtle px-3 py-2.5 text-sm"
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <Checkbox
+                      checked={selectedLineIds.has(group.lineId)}
+                      onChange={() => toggleLine(group.lineId)}
+                      disabled={acknowledging}
+                      aria-label={`${strings.publication.publish.acknowledge}: ${label}`}
+                      className="mt-0.5"
+                    />
+                    <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <span className="font-semibold text-fg-primary">
                           {label}
@@ -273,20 +340,10 @@ export function PublishPanel({
                           ),
                         )}
                       </div>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleAcknowledgeLine(group)}
-                        disabled={ackingLineId === group.lineId}
-                        aria-label={`${strings.publication.publish.acknowledge}: ${label}`}
-                        className="shrink-0"
-                      >
-                        {strings.publication.publish.acknowledge}
-                      </Button>
+                      <p className="mt-1.5 text-fg-secondary">
+                        {group.issues.map((issue) => issue.message).join(" · ")}
+                      </p>
                     </div>
-                    <p className="mt-1.5 text-fg-secondary">
-                      {group.issues.map((issue) => issue.message).join(" · ")}
-                    </p>
                   </div>
                 );
               })}

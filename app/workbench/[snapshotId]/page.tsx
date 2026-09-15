@@ -147,6 +147,19 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
           issuesByLineId={issuesByLineId}
           lineById={lineById}
           onChanged={() => void load()}
+          onIssuesAcknowledged={(issueIds) => {
+            const acknowledged = new Set(issueIds);
+            setIssuesByLineId((prev) => {
+              const next = new Map<string, ValidationIssue[]>();
+              for (const [lineId, issues] of prev) {
+                next.set(
+                  lineId,
+                  issues.filter((issue) => !acknowledged.has(issue.id)),
+                );
+              }
+              return next;
+            });
+          }}
         />
       ) : null}
 
