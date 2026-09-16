@@ -319,6 +319,11 @@ export const strings = {
       success: "Published",
       buyerNotified: "Buyer notified of a new price",
       buyerNotNotified: "Price unchanged from the last publish — published silently, buyer not re-notified",
+      alreadyPublishedButton: "Published",
+      alreadyPublishedAt: "Published",
+      recalculateToRepublish: "Recalculate this snapshot to review and publish again.",
+      supersededButton: "Superseded",
+      supersededNote: "A later submission has since been published — this snapshot's price is no longer current.",
     },
   },
   dashboard: {

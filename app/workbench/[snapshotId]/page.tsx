@@ -143,6 +143,7 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
       {snapshot.status === "CALCULATED" || snapshot.status === "PUBLISHED" || snapshot.status === "SUPERSEDED" ? (
         <PublishPanel
           snapshotId={snapshot.id}
+          snapshotStatus={snapshot.status}
           activeLineIds={activeLineIds}
           issuesByLineId={issuesByLineId}
           lineById={lineById}

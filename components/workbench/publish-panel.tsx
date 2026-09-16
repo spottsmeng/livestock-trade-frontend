@@ -16,7 +16,7 @@ import {
 import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
-import type { OrderLine, ValidationIssue } from "@/lib/workbench-api";
+import type { OrderLine, SnapshotStatus, ValidationIssue } from "@/lib/workbench-api";
 import {
   connectConsoleSocket,
   publicationsApi,
@@ -89,6 +89,7 @@ function groupByLine(
  */
 export function PublishPanel({
   snapshotId,
+  snapshotStatus,
   activeLineIds,
   issuesByLineId,
   lineById,
@@ -96,6 +97,12 @@ export function PublishPanel({
   onIssuesAcknowledged,
 }: {
   snapshotId: string;
+  /** Drives the locked "Published"/"Superseded" button state below —
+   * publishing is a one-way action per snapshot (the confirm dialog says
+   * so), so once the snapshot itself reports PUBLISHED or SUPERSEDED, the
+   * trigger button must stay disabled rather than silently re-openable.
+   * Only a Recalculate (which resets the snapshot to CALCULATED) unlocks it. */
+  snapshotStatus: SnapshotStatus;
   activeLineIds: Set<string>;
   issuesByLineId: Map<string, ValidationIssue[]>;
   lineById: Map<string, OrderLine>;
@@ -118,6 +125,33 @@ export function PublishPanel({
     null,
   );
   const [dialogOpen, setDialogOpen] = React.useState(false);
+
+  const alreadyPublished = snapshotStatus === "PUBLISHED" || snapshotStatus === "SUPERSEDED";
+
+  // Hydrates `published` from the server on load/reload — without this, a
+  // snapshot that was published in an earlier visit (or before a page
+  // refresh) would show no record of it at all, since `published` is
+  // otherwise only ever set locally by a fresh click in this same session.
+  React.useEffect(() => {
+    if (!alreadyPublished) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const all = await publicationsApi.list(accessToken);
+        const match = all.find((p) => p.snapshot_id === snapshotId); // list is published_at desc — first match is the latest
+        if (!match || cancelled) return;
+        const detail = await publicationsApi.get(match.id, accessToken);
+        if (!cancelled) setPublished(detail);
+      } catch {
+        // Best-effort — the locked button state alone still correctly
+        // blocks a repeat publish even if this detail fetch fails.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-fetch only when the snapshot's own published-ness changes, not on every accessToken identity change
+  }, [alreadyPublished, snapshotId]);
 
   const activeIssues = React.useMemo(() => {
     const all: ValidationIssue[] = [];
@@ -336,7 +370,26 @@ export function PublishPanel({
         </div>
       ) : null}
 
-      {blocked.length > 0 ? (
+      {alreadyPublished ? (
+        <div className="mt-3 flex flex-col gap-2">
+          <Button variant="secondary" disabled className="w-fit">
+            {snapshotStatus === "SUPERSEDED"
+              ? strings.publication.publish.supersededButton
+              : strings.publication.publish.alreadyPublishedButton}
+          </Button>
+          {published ? (
+            <p className="text-sm text-fg-tertiary">
+              {strings.publication.publish.alreadyPublishedAt}{" "}
+              {new Date(published.published_at).toLocaleString()}
+            </p>
+          ) : null}
+          <p className="text-sm text-fg-tertiary">
+            {snapshotStatus === "SUPERSEDED"
+              ? strings.publication.publish.supersededNote
+              : strings.publication.publish.recalculateToRepublish}
+          </p>
+        </div>
+      ) : blocked.length > 0 ? (
         <p className="mt-2 text-sm font-medium text-status-breach-fg">
           {strings.publication.publish.blocked}
         </p>
