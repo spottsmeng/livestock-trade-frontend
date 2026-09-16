@@ -33,6 +33,7 @@ export type Publication = {
   notes: string | null;
   superseded_by: string | null;
   superseded_at: string | null;
+  buyer_notified: boolean;
   lines: PublicationLine[];
 };
 

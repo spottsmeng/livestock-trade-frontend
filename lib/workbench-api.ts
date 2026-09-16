@@ -112,6 +112,7 @@ export type ValidationIssue = {
   column_ref: string | null;
   acknowledged_by: string | null;
   acknowledged_at: string | null;
+  carried_forward: boolean;
 };
 
 export type CorrectionRequest = {

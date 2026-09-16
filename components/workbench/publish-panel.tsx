@@ -60,6 +60,26 @@ type LineIssueGroup = {
   issues: ValidationIssue[];
 };
 
+function groupByLine(
+  issues: ValidationIssue[],
+  lineById: Map<string, OrderLine>,
+): LineIssueGroup[] {
+  const byLine = new Map<string, ValidationIssue[]>();
+  for (const issue of issues) {
+    byLine.set(issue.order_line_id, [
+      ...(byLine.get(issue.order_line_id) ?? []),
+      issue,
+    ]);
+  }
+  return Array.from(byLine.entries())
+    .map(([lineId, lineIssues]) => ({
+      lineId,
+      line: lineById.get(lineId),
+      issues: lineIssues,
+    }))
+    .sort((a, b) => (a.line?.line_no ?? 0) - (b.line?.line_no ?? 0));
+}
+
 /**
  * §11.5's Publish screen, built functionally rather than as a pixel-perfect
  * recreation of every visual embellishment in the PRD's prose (same scope
@@ -92,6 +112,7 @@ export function PublishPanel({
   const [selectedLineIds, setSelectedLineIds] = React.useState<Set<string>>(new Set());
   const [acknowledging, setAcknowledging] = React.useState(false);
   const [warningsExpanded, setWarningsExpanded] = React.useState(false);
+  const [carriedForwardExpanded, setCarriedForwardExpanded] = React.useState(false);
   const [publishing, setPublishing] = React.useState(false);
   const [published, setPublished] = React.useState<PublicationDetail | null>(
     null,
@@ -113,23 +134,27 @@ export function PublishPanel({
       !i.acknowledged_at,
   );
 
-  const lineGroups = React.useMemo<LineIssueGroup[]>(() => {
-    const byLine = new Map<string, ValidationIssue[]>();
-    for (const issue of unacknowledged) {
-      byLine.set(issue.order_line_id, [
-        ...(byLine.get(issue.order_line_id) ?? []),
-        issue,
-      ]);
-    }
-    return Array.from(byLine.entries())
-      .map(([lineId, issues]) => ({
-        lineId,
-        line: lineById.get(lineId),
-        issues,
-      }))
-      .sort((a, b) => (a.line?.line_no ?? 0) - (b.line?.line_no ?? 0));
+  // Already acknowledged automatically (services/issue_acknowledgment_service.py
+  // carried a prior human decision forward because this exact concern, on
+  // this exact order, is unchanged) — never in `unacknowledged`, so shown
+  // separately rather than silently disappearing, for trust in the automation.
+  const carriedForward = activeIssues.filter(
+    (i) =>
+      (i.severity === "WARN" || i.severity === "CORRECTION") &&
+      i.carried_forward,
+  );
+
+  const lineGroups = React.useMemo<LineIssueGroup[]>(
+    () => groupByLine(unacknowledged, lineById),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- unacknowledged is derived fresh from activeIssues every render; keying off it directly would memo nothing
-  }, [issuesByLineId, activeLineIds, lineById]);
+    [issuesByLineId, activeLineIds, lineById],
+  );
+
+  const carriedForwardGroups = React.useMemo<LineIssueGroup[]>(
+    () => groupByLine(carriedForward, lineById),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- same reasoning as lineGroups above
+    [issuesByLineId, activeLineIds, lineById],
+  );
 
   const categoryCounts = React.useMemo(() => {
     const counts = new Map<string, number>();
@@ -235,6 +260,81 @@ export function PublishPanel({
       <h2 className="text-lg font-semibold text-fg-primary">
         {strings.publication.publish.title}
       </h2>
+
+      {carriedForwardGroups.length > 0 ? (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setCarriedForwardExpanded((v) => !v)}
+            aria-expanded={carriedForwardExpanded}
+            aria-controls="publish-carried-forward-detail"
+            className="flex w-full items-center justify-between gap-3 rounded-md border-l-4 border-status-pass-border bg-status-pass-bg px-3 py-2.5 text-left"
+          >
+            <div className="flex items-start gap-2">
+              <span
+                aria-hidden="true"
+                className="mt-0.5 text-base leading-none text-status-pass-fg"
+              >
+                ✓
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-status-pass-fg">
+                  {strings.publication.publish.carriedForwardTitle}
+                </p>
+                <p className="mt-0.5 text-sm text-fg-secondary">
+                  <span className="font-semibold text-fg-primary">
+                    {carriedForwardGroups.length}
+                  </span>{" "}
+                  line
+                  {carriedForwardGroups.length === 1 ? "" : "s"} no longer need
+                  your attention
+                </p>
+              </div>
+            </div>
+            <span className="shrink-0 whitespace-nowrap text-xs font-medium text-accent-default">
+              {carriedForwardExpanded ? "Hide details ▾" : "Show details ▸"}
+            </span>
+          </button>
+          {carriedForwardExpanded ? (
+            <div id="publish-carried-forward-detail" className="mt-2 flex flex-col gap-2">
+              {carriedForwardGroups.map((group) => {
+                const label = lineLabel(group.line);
+                return (
+                  <div
+                    key={group.lineId}
+                    className="flex items-start gap-3 rounded-md border border-subtle px-3 py-2.5 text-sm"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="font-semibold text-fg-primary">
+                          {label}
+                        </span>
+                        {group.line?.species ? (
+                          <Badge variant="neutral">{group.line.species}</Badge>
+                        ) : null}
+                        <Badge variant="pass">
+                          {strings.publication.publish.carriedForwardBadge}
+                        </Badge>
+                      </div>
+                      <p className="mt-1.5 text-fg-secondary">
+                        {group.issues.map((issue) => issue.message).join(" · ")}
+                      </p>
+                      {group.issues[0]?.acknowledged_at ? (
+                        <p className="mt-1 text-xs text-fg-tertiary">
+                          Reviewed{" "}
+                          {new Date(
+                            group.issues[0].acknowledged_at,
+                          ).toLocaleDateString()}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {blocked.length > 0 ? (
         <p className="mt-2 text-sm font-medium text-status-breach-fg">
@@ -383,6 +483,11 @@ export function PublishPanel({
           <p className="text-sm font-semibold text-fg-primary">
             {strings.publication.publish.summaryTitle}
           </p>
+          <Badge variant={published.buyer_notified ? "pass" : "neutral"} className="mt-2">
+            {published.buyer_notified
+              ? strings.publication.publish.buyerNotified
+              : strings.publication.publish.buyerNotNotified}
+          </Badge>
           <div className="mt-2 flex flex-col gap-1">
             {published.lines.map((line) => (
               <div
