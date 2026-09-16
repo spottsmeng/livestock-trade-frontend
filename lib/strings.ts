@@ -198,6 +198,8 @@ export const strings = {
       noPublication: "No Do Not Buy Price has been published yet.",
       perKg: "per kg",
       headsSuffix: "hd",
+      increasedBy: "increased by",
+      decreasedBy: "decreased by",
     },
     bidCheck: {
       title: "Bid Check",

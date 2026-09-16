@@ -6,6 +6,7 @@ export type WeightBand = { min: string; max: string };
 export type DnbpSpeciesLine = {
   species: string;
   dnbp_per_kg: string;
+  previous_dnbp_per_kg: string | null;
   target_heads: string | null;
   weight_band: WeightBand | null;
 };

@@ -6,6 +6,7 @@ export type PublicationLine = {
   publication_id: string;
   species: string;
   dnbp_per_kg: string;
+  previous_dnbp_per_kg: string | null;
   target_heads: string | null;
   target_weight_kg_min: string | null;
   target_weight_kg_max: string | null;

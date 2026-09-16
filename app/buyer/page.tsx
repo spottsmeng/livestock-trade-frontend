@@ -9,12 +9,22 @@ import { InstallPrompt } from "@/components/buyer/install-prompt";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
-import { buyerApi, connectBuyerSocket, type DnbpCurrentResponse } from "@/lib/buyer-api";
+import { buyerApi, connectBuyerSocket, type DnbpCurrentResponse, type DnbpSpeciesLine } from "@/lib/buyer-api";
 import { cacheDnbp, getCachedDnbp, type CachedDnbp } from "@/lib/buyer/db";
 
 // §3, §12.2 — a publication older than this is stale even if it's still
 // technically "current" (nothing newer has been published since).
 const STALE_INSTRUCTION_HOURS = 24;
+
+// §12.2's own mockup: "$9.38   ▲ +0.12  ← change vs previous publication".
+// Null whenever there's nothing to compare against (this org's first-ever
+// publish for the species) or the price didn't move — an unchanged price
+// shows no arrow at all in the PRD's own example, same as this.
+function priceDelta(line: DnbpSpeciesLine): number | null {
+  if (line.previous_dnbp_per_kg === null) return null;
+  const delta = Number(line.dnbp_per_kg) - Number(line.previous_dnbp_per_kg);
+  return delta === 0 ? null : delta;
+}
 
 export default function BuyerDnbpHomePage() {
   return (
@@ -117,16 +127,32 @@ function DnbpHomeContent() {
       ) : null}
 
       <div className="flex flex-col">
-        {cached.species.map((line) => (
+        {cached.species.map((line) => {
+          const delta = priceDelta(line);
+          return (
           <div key={line.species} className="border-b border-subtle px-4 py-6">
             <p className="text-lg font-semibold uppercase tracking-wide text-fg-secondary">{line.species}</p>
-            <p
-              data-numeric
-              className="mt-1 text-6xl font-bold leading-none text-accent-default"
-              style={{ fontFeatureSettings: '"tnum" 1' }}
-            >
-              ${line.dnbp_per_kg}
-            </p>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <p
+                data-numeric
+                className="text-6xl font-bold leading-none text-accent-default"
+                style={{ fontFeatureSettings: '"tnum" 1' }}
+              >
+                ${line.dnbp_per_kg}
+              </p>
+              {delta !== null ? (
+                <span data-numeric className="text-lg font-medium text-fg-secondary">
+                  <span aria-hidden="true">
+                    {delta > 0 ? "▲" : "▼"} {delta > 0 ? "+" : "−"}
+                    {Math.abs(delta).toFixed(2)}
+                  </span>
+                  <span className="sr-only">
+                    {delta > 0 ? strings.buyer.dnbpHome.increasedBy : strings.buyer.dnbpHome.decreasedBy} $
+                    {Math.abs(delta).toFixed(2)}
+                  </span>
+                </span>
+              ) : null}
+            </div>
             <p className="mt-2 text-sm text-fg-tertiary">
               {strings.buyer.dnbpHome.perKg}
               {line.target_heads ? ` · ${Math.round(Number(line.target_heads))} ${strings.buyer.dnbpHome.headsSuffix}` : ""}
@@ -135,7 +161,8 @@ function DnbpHomeContent() {
                 : ""}
             </p>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

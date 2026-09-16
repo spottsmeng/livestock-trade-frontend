@@ -21,12 +21,26 @@ import {
   connectConsoleSocket,
   publicationsApi,
   type PublicationDetail,
+  type PublicationLine,
 } from "@/lib/publications-api";
 
 function lineLabel(line: OrderLine | undefined): string {
   if (!line) return "Line —";
   const ref = line.contract_no ?? line.customer_name;
   return ref ? `Line ${line.line_no} · ${ref}` : `Line ${line.line_no}`;
+}
+
+// §11.5's own "Summary of DNBP per species with change vs the previous
+// publication (▲▼ and %)" — the console's version of the same figure
+// app/buyer/page.tsx's priceDelta shows, plus the percentage Bing needs to
+// judge whether a move is material. Null when there's nothing to compare
+// (first-ever publish for the species) or the price didn't move.
+function priceChange(line: PublicationLine): { delta: number; pct: number } | null {
+  if (line.previous_dnbp_per_kg === null) return null;
+  const previous = Number(line.previous_dnbp_per_kg);
+  const delta = Number(line.dnbp_per_kg) - previous;
+  if (delta === 0 || previous === 0) return null;
+  return { delta, pct: (delta / previous) * 100 };
 }
 
 /** Plain-English grouping for the Publish screen's warning chips — one label
@@ -542,17 +556,29 @@ export function PublishPanel({
               : strings.publication.publish.buyerNotNotified}
           </Badge>
           <div className="mt-2 flex flex-col gap-1">
-            {published.lines.map((line) => (
-              <div
-                key={line.id}
-                className="flex items-center justify-between text-sm"
-              >
-                <span className="font-medium">{line.species}</span>
-                <span data-numeric>
-                  ${Number(line.dnbp_per_kg).toFixed(2)}/kg
-                </span>
-              </div>
-            ))}
+            {published.lines.map((line) => {
+              const change = priceChange(line);
+              return (
+                <div
+                  key={line.id}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="font-medium">{line.species}</span>
+                  <span className="flex items-baseline gap-2">
+                    <span data-numeric>
+                      ${Number(line.dnbp_per_kg).toFixed(2)}/kg
+                    </span>
+                    {change ? (
+                      <span data-numeric className="text-xs text-fg-tertiary">
+                        {change.delta > 0 ? "▲" : "▼"} {change.delta > 0 ? "+" : "−"}
+                        {Math.abs(change.delta).toFixed(2)} ({change.pct > 0 ? "+" : "−"}
+                        {Math.abs(change.pct).toFixed(1)}%)
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           <p className="mt-4 text-sm font-semibold text-fg-primary">
