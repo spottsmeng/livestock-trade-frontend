@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
+import { ApiError } from "@/lib/api-client";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
 import {
@@ -47,7 +48,17 @@ function BuyInstructionDetailContent({ id }: { id: string }) {
   const load = React.useCallback(async () => {
     try {
       const [inst, recon] = await Promise.all([
-        buyInstructionsApi.get(id, accessToken),
+        // A 404 here means the instruction genuinely doesn't exist (or
+        // isn't this org's) — that's what the EmptyState below is for.
+        // Anything else (5xx, network) is a real failure and must not be
+        // silently relabeled as "not found", so it gets its own toast
+        // instead of being swallowed the same way.
+        buyInstructionsApi.get(id, accessToken).catch((err) => {
+          if (!(err instanceof ApiError) || err.status !== 404) {
+            toast({ title: err instanceof Error ? err.message : "Something went wrong", variant: "danger" });
+          }
+          return null;
+        }),
         buyInstructionsApi.getReconciliation(id, accessToken).catch(() => null),
       ]);
       setInstruction(inst);
@@ -79,9 +90,9 @@ function BuyInstructionDetailContent({ id }: { id: string }) {
     });
   }
 
-  async function handleIssue() {
-    await withBusy("issue", async () => {
-      await buyInstructionsApi.issue(id, accessToken);
+  async function handlePublish() {
+    await withBusy("publish", async () => {
+      await buyInstructionsApi.publish(id, accessToken);
       await load();
     });
   }
@@ -153,8 +164,8 @@ function BuyInstructionDetailContent({ id }: { id: string }) {
             </Button>
           ) : null}
           {instruction.status === "DRAFT" && instruction.approved_by ? (
-            <Button size="sm" onClick={handleIssue} disabled={busy === "issue"}>
-              {busy === "issue" ? strings.buyInstructions.issuing : strings.buyInstructions.issue}
+            <Button size="sm" onClick={handlePublish} disabled={busy === "publish"}>
+              {busy === "publish" ? strings.buyInstructions.publishing : strings.buyInstructions.publish}
             </Button>
           ) : null}
           {instruction.status === "ACKNOWLEDGED" ? (

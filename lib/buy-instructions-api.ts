@@ -31,7 +31,7 @@ export type BuyInstruction = {
   version: number;
   trade_date: string;
   snapshot_id: string;
-  publication_id: string;
+  publication_id: string | null;
   prepared_by: string;
   approved_by: string | null;
   approved_at: string | null;
@@ -71,7 +71,7 @@ function auth(accessToken: string | null) {
 
 export const buyInstructionsApi = {
   generate: (
-    body: { snapshot_id: string; publication_id: string; trade_date?: string; note?: string },
+    body: { snapshot_id: string; trade_date?: string; note?: string },
     accessToken: string | null
   ) => apiFetch<BuyInstruction>("/buy-instructions", { method: "POST", body, ...auth(accessToken) }),
 
@@ -85,8 +85,8 @@ export const buyInstructionsApi = {
   approve: (id: string, accessToken: string | null) =>
     apiFetch<BuyInstruction>(`/buy-instructions/${id}/approve`, { method: "POST", ...auth(accessToken) }),
 
-  issue: (id: string, accessToken: string | null) =>
-    apiFetch<BuyInstruction>(`/buy-instructions/${id}/issue`, { method: "POST", ...auth(accessToken) }),
+  publish: (id: string, accessToken: string | null) =>
+    apiFetch<BuyInstruction>(`/buy-instructions/${id}/publish`, { method: "POST", ...auth(accessToken) }),
 
   reconcileClose: (id: string, accessToken: string | null) =>
     apiFetch<BuyInstruction>(`/buy-instructions/${id}/reconcile-close`, { method: "POST", ...auth(accessToken) }),

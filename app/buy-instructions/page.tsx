@@ -5,14 +5,11 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { AuthGuard } from "@/components/auth-guard";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
 import { buyInstructionsApi, type BuyInstruction } from "@/lib/buy-instructions-api";
-import { publicationsApi } from "@/lib/publications-api";
 
 const STATUS_VARIANT: Record<BuyInstruction["status"], "neutral" | "accent" | "pass"> = {
   DRAFT: "neutral",
@@ -35,8 +32,6 @@ function BuyInstructionsContent() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const [instructions, setInstructions] = React.useState<BuyInstruction[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [generating, setGenerating] = React.useState(false);
-  const [hasCurrentPublication, setHasCurrentPublication] = React.useState(true);
 
   const load = React.useCallback(async () => {
     try {
@@ -51,35 +46,10 @@ function BuyInstructionsContent() {
     void load();
   }, [load]);
 
-  async function handleGenerate() {
-    setGenerating(true);
-    try {
-      const publication = await publicationsApi.getCurrent(accessToken);
-      const instruction = await buyInstructionsApi.generate(
-        { snapshot_id: publication.snapshot_id, publication_id: publication.id },
-        accessToken
-      );
-      toast({ title: `${instruction.instruction_no} generated` });
-      await load();
-    } catch {
-      setHasCurrentPublication(false);
-      toast({ title: strings.buyInstructions.noPublication, variant: "danger" });
-    } finally {
-      setGenerating(false);
-    }
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        {/* AppShell already renders the page's <h1> (its title bar) — this is the content area's own heading. */}
-        <h2 className="text-xl font-semibold text-fg-primary">{strings.buyInstructions.title}</h2>
-        <Button onClick={handleGenerate} disabled={generating}>
-          {generating ? strings.buyInstructions.generating : strings.buyInstructions.generate}
-        </Button>
-      </div>
-
-      {!hasCurrentPublication ? <p className="text-sm text-status-breach-fg">{strings.buyInstructions.noPublication}</p> : null}
+      {/* AppShell already renders the page's <h1> (its title bar) — this is the content area's own heading. */}
+      <h2 className="text-xl font-semibold text-fg-primary">{strings.buyInstructions.title}</h2>
 
       {loading ? (
         <p className="text-sm text-fg-tertiary">Loading…</p>

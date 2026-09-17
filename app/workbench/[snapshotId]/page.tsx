@@ -147,7 +147,6 @@ function WorkbenchContent({ snapshotId }: { snapshotId: string }) {
           activeLineIds={activeLineIds}
           issuesByLineId={issuesByLineId}
           lineById={lineById}
-          onChanged={() => void load()}
           onIssuesAcknowledged={(issueIds) => {
             const acknowledged = new Set(issueIds);
             setIssuesByLineId((prev) => {

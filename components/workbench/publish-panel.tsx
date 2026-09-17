@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +17,7 @@ import {
 import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
+import { buyInstructionsApi } from "@/lib/buy-instructions-api";
 import type { OrderLine, SnapshotStatus, ValidationIssue } from "@/lib/workbench-api";
 import {
   connectConsoleSocket,
@@ -107,7 +109,6 @@ export function PublishPanel({
   activeLineIds,
   issuesByLineId,
   lineById,
-  onChanged,
   onIssuesAcknowledged,
 }: {
   snapshotId: string;
@@ -120,21 +121,18 @@ export function PublishPanel({
   activeLineIds: Set<string>;
   issuesByLineId: Map<string, ValidationIssue[]>;
   lineById: Map<string, OrderLine>;
-  /** For publish itself — that also changes the snapshot's own status, which
-   * lives outside anything this panel tracks locally, so a real reload is
-   * warranted there. */
-  onChanged: () => void;
   /** Acknowledging can only ever remove these issue ids from
    * issuesByLineId — nothing else on the page depends on them — so the
    * parent patches its local state directly instead of a full reload. */
   onIssuesAcknowledged: (issueIds: string[]) => void;
 }) {
+  const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
   const [selectedLineIds, setSelectedLineIds] = React.useState<Set<string>>(new Set());
   const [acknowledging, setAcknowledging] = React.useState(false);
   const [warningsExpanded, setWarningsExpanded] = React.useState(false);
   const [carriedForwardExpanded, setCarriedForwardExpanded] = React.useState(false);
-  const [publishing, setPublishing] = React.useState(false);
+  const [creatingInstruction, setCreatingInstruction] = React.useState(false);
   const [published, setPublished] = React.useState<PublicationDetail | null>(
     null,
   );
@@ -284,22 +282,24 @@ export function PublishPanel({
     }
   }
 
-  async function handlePublish() {
-    setPublishing(true);
+  // This used to publish the DNBP straight to every buyer. It no longer
+  // does — a DnbpPublication must never exist without an already-approved
+  // Buy Instruction behind it, so this only stages that instruction (the
+  // BLOCK/WARN gate above still fully applies here, same as it did for the
+  // old direct publish) and hands off to its approval workflow. The actual
+  // publish-to-buyer action now lives on the instruction's own page, gated
+  // on approval — see buy_instruction_service.publish on the backend.
+  async function handleCreateInstruction() {
+    setCreatingInstruction(true);
     try {
-      const result = await publicationsApi.publish(
-        snapshotId,
-        undefined,
-        accessToken,
-      );
-      setPublished(result);
+      const instruction = await buyInstructionsApi.generate({ snapshot_id: snapshotId }, accessToken);
       setDialogOpen(false);
-      toast({ title: strings.publication.publish.success });
-      onChanged();
+      toast({ title: `${instruction.instruction_no} created` });
+      router.push(`/buy-instructions/${instruction.id}`);
     } catch {
-      toast({ title: "Could not publish", variant: "danger" });
+      toast({ title: "Could not create Buy Instruction", variant: "danger" });
     } finally {
-      setPublishing(false);
+      setCreatingInstruction(false);
     }
   }
 
@@ -521,24 +521,23 @@ export function PublishPanel({
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="mt-3" disabled={activeLineIds.size === 0}>
-              {strings.publication.publish.confirm}
+              {strings.buyInstructions.generate}
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogTitle>{strings.publication.publish.title}</DialogTitle>
+            <DialogTitle>{strings.buyInstructions.generate}</DialogTitle>
             <DialogDescription>
-              This publishes the current Do Not Buy Price to every active buyer,
-              immediately and over their preferred channel. This cannot be
-              undone (only superseded by a later publish).
+              This creates a Buy Instruction from the current calculation for
+              review and approval. The Do Not Buy Price is not sent to buyers
+              yet — that only happens once an OWNER approves the instruction
+              and publishes it from its own page.
             </DialogDescription>
             <div className="mt-4 flex justify-end gap-2">
               <DialogClose asChild>
                 <Button variant="secondary">Cancel</Button>
               </DialogClose>
-              <Button onClick={handlePublish} disabled={publishing}>
-                {publishing
-                  ? strings.publication.publish.confirming
-                  : strings.publication.publish.confirm}
+              <Button onClick={handleCreateInstruction} disabled={creatingInstruction}>
+                {creatingInstruction ? strings.buyInstructions.generating : strings.buyInstructions.generate}
               </Button>
             </div>
           </DialogContent>
