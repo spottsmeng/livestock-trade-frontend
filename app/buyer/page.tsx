@@ -74,7 +74,15 @@ function DnbpHomeContent() {
     const socket = connectBuyerSocket(
       () => useAuthStore.getState().accessToken,
       (event, data) => {
-        if (event === "dnbp.published") void applyFresh(data as DnbpCurrentResponse);
+        if (event === "dnbp.published") {
+          void applyFresh(data as DnbpCurrentResponse);
+        } else if (event === "buying.progress_updated") {
+          // This event only carries the touched species' delta (see
+          // services/delivery_service.py::push_buying_progress), not the
+          // full DnbpCurrentResponse shape applyFresh expects — re-fetch
+          // instead of trying to merge a partial payload in.
+          void loadFromCacheThenNetwork();
+        }
       },
       () => void loadFromCacheThenNetwork() // always re-fetch on (re)connect, per §10
     );
@@ -160,6 +168,12 @@ function DnbpHomeContent() {
                 ? ` · ${Number(line.weight_band.min).toFixed(1)}–${Number(line.weight_band.max).toFixed(1)} kg`
                 : ""}
             </p>
+            {line.target_heads ? (
+              <p className="mt-1 text-sm font-medium text-fg-secondary" data-numeric>
+                {Math.round(Number(line.heads_bought))} / {Math.round(Number(line.target_heads))}{" "}
+                {strings.buyer.dnbpHome.headsSuffix} {strings.buyer.dnbpHome.boughtSoFar}
+              </p>
+            ) : null}
           </div>
           );
         })}

@@ -96,6 +96,10 @@ function InstructionContent() {
             <p className="text-base font-semibold text-fg-primary">{line.contract_no ?? line.species}</p>
             <p className="text-sm text-fg-secondary">{line.species}</p>
             <div className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
+              <span className="text-fg-tertiary">{strings.buyer.instruction.schw}</span>
+              <span className="text-right font-medium" data-numeric>
+                {Number(line.schw_kg).toFixed(1)} kg
+              </span>
               <span className="text-fg-tertiary">{strings.buyer.instruction.targetHeads}</span>
               <span className="text-right font-medium" data-numeric>
                 {Math.round(Number(line.target_heads))}

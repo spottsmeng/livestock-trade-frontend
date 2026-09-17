@@ -10,6 +10,7 @@ import { BuyerPerformancePanel } from "@/components/dashboard/buyer-performance-
 import { MarginBridgePanel } from "@/components/dashboard/margin-bridge-panel";
 import { FulfilmentPanel } from "@/components/dashboard/fulfilment-panel";
 import { ExceptionsPanel } from "@/components/dashboard/exceptions-panel";
+import { LiveBuyingPanel } from "@/components/dashboard/live-buying-panel";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
 import { withErrorToast } from "@/lib/with-error-toast";
@@ -23,6 +24,7 @@ import {
   type FulfilmentResponse,
   type ExceptionsResponse,
 } from "@/lib/analytics-api";
+import { connectConsoleSocket, publicationsApi, type SpeciesProgress } from "@/lib/publications-api";
 
 const money = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const number = new Intl.NumberFormat("en-AU");
@@ -58,6 +60,45 @@ function DashboardContent() {
   const [days, setDays] = React.useState(30);
   const [dnbpTrend, setDnbpTrend] = React.useState<DnbpTrendResponse | null>(null);
   const [trendLoading, setTrendLoading] = React.useState(true);
+
+  const [liveBuying, setLiveBuying] = React.useState<SpeciesProgress | null>(null);
+  const [liveBuyingLoading, setLiveBuyingLoading] = React.useState(true);
+
+  const loadLiveBuying = React.useCallback(async () => {
+    try {
+      const data = await publicationsApi.getCurrentProgress(accessToken);
+      setLiveBuying(data);
+    } catch {
+      // Nothing published yet, or a transient error — the panel already
+      // renders its own empty state for a null value.
+      setLiveBuying(null);
+    } finally {
+      setLiveBuyingLoading(false);
+    }
+  }, [accessToken]);
+
+  React.useEffect(() => {
+    void (async () => {
+      await loadLiveBuying();
+    })();
+  }, [loadLiveBuying]);
+
+  React.useEffect(() => {
+    const socket = connectConsoleSocket(
+      () => useAuthStore.getState().accessToken,
+      (event) => {
+        // Both events can change heads_bought or target_heads (see
+        // services/delivery_service.py::push_buying_progress and
+        // services/publication_service.py::publish) — always re-fetch
+        // rather than trying to merge a partial payload in.
+        if (event === "buying.progress_updated" || event === "dnbp.published") {
+          void loadLiveBuying();
+        }
+      },
+      () => void loadLiveBuying()
+    );
+    return () => socket.close();
+  }, [loadLiveBuying]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -140,6 +181,7 @@ function DashboardContent() {
         />
       </div>
 
+      <LiveBuyingPanel data={liveBuying} loading={liveBuyingLoading} />
       <OrderBookPanel data={orderBook} loading={loading} />
       <DnbpTrendPanel
         data={dnbpTrend}

@@ -179,8 +179,9 @@ export const strings = {
       title: "Instruction",
       none: "No Buy Instruction has been issued yet.",
       statusLabel: "Status",
-      contractLabel: "Contract",
-      targetHeads: "Target heads",
+      contractLabel: "Order number",
+      schw: "SCHW",
+      targetHeads: "Expected no of head",
       weightRequirement: "Weight requirement",
       dnbp: "Do not buy price",
       saleyard: "Saleyard",
@@ -200,6 +201,7 @@ export const strings = {
       headsSuffix: "hd",
       increasedBy: "increased by",
       decreasedBy: "decreased by",
+      boughtSoFar: "bought so far",
     },
     bidCheck: {
       title: "Bid Check",
@@ -367,6 +369,13 @@ export const strings = {
         subtitle: "Instructed vs bought SCHW, by trade date",
         instructed: "Instructed SCHW (kg)",
         bought: "Bought SCHW (kg)",
+      },
+      liveBuying: {
+        title: "Live buying progress",
+        subtitle: "Bought vs. target for the current publication, updating in real time as buyers log purchases",
+        target: "Target",
+        boughtSoFar: "Bought so far",
+        none: "Nothing published yet.",
       },
       exceptions: {
         title: "Exceptions",

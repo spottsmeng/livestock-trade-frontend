@@ -40,6 +40,20 @@ export type Publication = {
 
 export type PublicationDetail = Publication & { deliveries: DeliveryState[] };
 
+// Matches backend/schemas/publications.py::SpeciesProgressResponse. Same
+// underlying compute_species_progress as the buyer's own
+// GET /buyer/dnbp/current — see services/buying_progress_service.py.
+export type SpeciesProgressLine = {
+  species: string;
+  target_heads: string | null;
+  heads_bought: number;
+};
+
+export type SpeciesProgress = {
+  publication_id: string;
+  species: SpeciesProgressLine[];
+};
+
 function auth(accessToken: string | null) {
   return { accessToken };
 }
@@ -57,6 +71,9 @@ export const publicationsApi = {
   getCurrent: (accessToken: string | null) => apiFetch<PublicationDetail>("/publications/current", auth(accessToken)),
 
   get: (id: string, accessToken: string | null) => apiFetch<PublicationDetail>(`/publications/${id}`, auth(accessToken)),
+
+  getCurrentProgress: (accessToken: string | null) =>
+    apiFetch<SpeciesProgress>("/publications/current/progress", auth(accessToken)),
 
   acknowledgeIssue: (snapshotId: string, issueId: string, accessToken: string | null) =>
     apiFetch<unknown>(`/snapshots/${snapshotId}/issues/${issueId}/acknowledge`, { method: "POST", ...auth(accessToken) }),

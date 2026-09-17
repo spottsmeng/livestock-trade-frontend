@@ -8,6 +8,7 @@ export type DnbpSpeciesLine = {
   dnbp_per_kg: string;
   previous_dnbp_per_kg: string | null;
   target_heads: string | null;
+  heads_bought: string;
   weight_band: WeightBand | null;
 };
 
@@ -69,6 +70,7 @@ export type BuyEntryResponse = {
 export type InstructionLine = {
   contract_no: string | null;
   species: string;
+  schw_kg: string;
   target_heads: string;
   weight_requirement_kg: string;
   dnbp_per_kg: string;
