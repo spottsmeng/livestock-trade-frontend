@@ -12,6 +12,16 @@ import Decimal from "decimal.js";
  * a buyer at the ring is reading this number to decide what to bid.
  */
 
+// §12.3 — mirrors the seed config's bid_check_close_threshold_pct (5).
+// Not fetched from the API this phase: Bid Check must work fully offline
+// from a cold start, and this constant changes rarely enough that shipping
+// it as a client-side default (rather than adding a public config
+// endpoint just for one number) is a reasonable, named simplification.
+// Declared once, here, and imported by both the Bid Check and Buy Log
+// screens — they score against the same threshold and must never be able
+// to drift apart from a copy-pasted literal.
+export const CLOSE_THRESHOLD_PCT = 5;
+
 export type BidStatus = "PASS" | "CLOSE" | "BREACH";
 
 export type BidCheckResult = {

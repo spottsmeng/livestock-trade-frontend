@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import Decimal from "decimal.js";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthGuard } from "@/components/auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { BuyerBottomNav } from "@/components/buyer/bottom-nav";
@@ -15,21 +17,22 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
-import { scoreBid } from "@/lib/buyer/bidcheck";
+import { scoreBid, CLOSE_THRESHOLD_PCT } from "@/lib/buyer/bidcheck";
 import { buyerApi } from "@/lib/buyer-api";
 import { buyerDb, cacheHistoryEntry, getCachedDnbp, type CachedDnbp } from "@/lib/buyer/db";
 import { submitBuyEntry } from "@/lib/buyer/create-entry";
 import { flushPendingEntries } from "@/lib/buyer/sync";
 import { useLiveQuery } from "dexie-react-hooks";
 
-const CLOSE_THRESHOLD_PCT = 5;
 const DUPLICATE_WINDOW_MS = 2 * 60 * 1000;
 
 export default function BuyLogPage() {
   return (
     <AuthGuard requiredRole="BUYER">
       <AppShell title={strings.buyer.buyLog.title}>
-        <BuyLogContent />
+        <Suspense fallback={null}>
+          <BuyLogContent />
+        </Suspense>
       </AppShell>
       <BuyerBottomNav />
     </AuthGuard>
@@ -37,6 +40,8 @@ export default function BuyLogPage() {
 }
 
 function BuyLogContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const accessToken = useAuthStore((s) => s.accessToken);
   const [cached, setCached] = React.useState<CachedDnbp | null>(null);
   const [saleyard, setSaleyard] = React.useState("Bendigo");
@@ -62,7 +67,24 @@ function BuyLogContent() {
     void (async () => {
       const data = await getCachedDnbp();
       setCached(data ?? null);
-      if (data && data.species.length > 0) setSpecies(data.species[0].species);
+      // A handoff from Bid Check (species/weight/price as URL query params)
+      // takes priority over the default first-species preselect — it means
+      // the buyer already evaluated a specific lot and is here to log
+      // exactly that one. Reading searchParams is non-destructive and
+      // idempotent, unlike a "consume once" store: running this twice
+      // reads the same values both times, so nothing here needs to guard
+      // against React's dev-mode double-invocation of mount effects.
+      const draftSpecies = searchParams.get("species");
+      const draftWeight = searchParams.get("weight");
+      const draftPrice = searchParams.get("price");
+      if (draftSpecies && draftWeight && draftPrice) {
+        setSpecies(draftSpecies);
+        setWeight(draftWeight);
+        setPrice(draftPrice);
+        router.replace("/buyer/buy-log");
+      } else if (data && data.species.length > 0) {
+        setSpecies(data.species[0].species);
+      }
     })();
     void flushPendingEntries(accessToken);
     if (accessToken) {
@@ -71,6 +93,7 @@ function BuyLogContent() {
         .then((entries) => Promise.all(entries.map((e) => cacheHistoryEntry(e))))
         .catch(() => {});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- searchParams/router deliberately excluded: a Bid Check handoff must be applied at most once per mount, and the router.replace() above changes the URL (and therefore searchParams' identity) as a *result* of running this effect — including them here would re-trigger it and immediately overwrite the species/weight/price we just set.
   }, [accessToken, today]);
 
   const speciesLine = cached?.species.find((s) => s.species === species);
@@ -136,7 +159,7 @@ function BuyLogContent() {
 
   const rows = React.useMemo(() => {
     const history = historyResult ?? [];
-    const byUuid = new Map<string, { client_uuid: string; agent: string | null; pen: string | null; head_count: number; price_per_head: string; weight_kg: string; implied_price_per_kg: string; is_breach: boolean; synced: boolean }>();
+    const byUuid = new Map<string, { client_uuid: string; species: string; agent: string | null; pen: string | null; head_count: number; price_per_head: string; weight_kg: string; implied_price_per_kg: string; is_breach: boolean; synced: boolean }>();
     for (const h of history) {
       byUuid.set(h.client_uuid, { ...h, synced: true });
     }
@@ -152,6 +175,7 @@ function BuyLogContent() {
           : null;
         byUuid.set(p.client_uuid, {
           client_uuid: p.client_uuid,
+          species: p.payload.species,
           agent: p.payload.agent ?? null,
           pen: p.payload.pen ?? null,
           head_count: p.payload.head_count,
@@ -252,7 +276,7 @@ function BuyLogContent() {
             <div key={row.client_uuid} className="flex items-center justify-between rounded-md border border-subtle px-3 py-2 text-sm">
               <div className="flex items-center gap-2">
                 <span className={row.is_breach ? "h-2 w-2 rounded-full bg-status-breach-border" : "h-2 w-2 rounded-full bg-status-pass-border"} aria-hidden />
-                <span>{row.agent ?? "—"} · {row.pen ?? "—"} · {row.head_count}hd</span>
+                <span>{row.species} · {row.agent ?? "—"} · {row.pen ?? "—"} · {row.head_count}hd</span>
               </div>
               <div className="flex items-center gap-3">
                 <span data-numeric>${Number(row.implied_price_per_kg).toFixed(2)}/kg</span>
