@@ -438,7 +438,14 @@ export const strings = {
   marketIntel: {
     title: "Market Intel",
     subtitle: "Competitor bids observed ringside by our buyers — for benchmarking, analytics and ML.",
-    filters: { from: "From", to: "To", saleyard: "Saleyard", species: "Species", competitor: "Buyer / company" },
+    filters: {
+      from: "From",
+      to: "To",
+      saleyard: "Saleyard",
+      species: "Species",
+      competitor: "Buyer / company",
+      clear: "Clear filters",
+    },
     summary: {
       title: "Summary by competitor",
       subtitle: "Avg $/kg, heads observed and entry count, grouped by buyer and species",
