@@ -49,7 +49,7 @@ function priceChange(line: PublicationLine): { delta: number; pct: number } | nu
  * per business concern rather than the raw §5.7 issue code. */
 function issueCategory(code: string): string {
   switch (code) {
-    case "DNBP_BELOW_COST":
+    case "MARGIN_BUFFER_ERODED":
     case "NEGATIVE_MARGIN":
     case "DNBP_OUTLIER":
     case "LARGE_BENCHMARK_GAP":
