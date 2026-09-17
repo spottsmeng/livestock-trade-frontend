@@ -10,6 +10,7 @@ import { MarketIntelSummaryPanel } from "@/components/market-intel/summary-panel
 import { MarketIntelObservationsPanel } from "@/components/market-intel/observations-panel";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { withErrorToast } from "@/lib/with-error-toast";
 import { marketIntelApi, type MarketIntelSummaryResponse, type MarketObservationResponse } from "@/lib/market-intel-api";
 
@@ -37,14 +38,28 @@ function MarketIntelContent() {
   const [observations, setObservations] = React.useState<MarketObservationResponse[] | null>(null);
   const [loading, setLoading] = React.useState(true);
 
+  // Debounced so typing a filter fires one request per pause, not one per
+  // keystroke — a fast typist across all five fields could otherwise burn
+  // through the general API rate limit before finishing a single word.
+  const debouncedFrom = useDebouncedValue(from, 350);
+  const debouncedTo = useDebouncedValue(to, 350);
+  const debouncedSaleyard = useDebouncedValue(saleyard, 350);
+  const debouncedSpecies = useDebouncedValue(species, 350);
+  const debouncedCompetitor = useDebouncedValue(competitor, 350);
+
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
       await withErrorToast(async () => {
-        const filters = { from: from || undefined, to: to || undefined, saleyard: saleyard || undefined, species: species || undefined };
+        const filters = {
+          from: debouncedFrom || undefined,
+          to: debouncedTo || undefined,
+          saleyard: debouncedSaleyard || undefined,
+          species: debouncedSpecies || undefined,
+        };
         const [sm, obs] = await Promise.all([
           marketIntelApi.getSummary(accessToken, filters),
-          marketIntelApi.listObservations(accessToken, { ...filters, competitorName: competitor || undefined }),
+          marketIntelApi.listObservations(accessToken, { ...filters, competitorName: debouncedCompetitor || undefined }),
         ]);
         if (cancelled) return;
         setSummary(sm);
@@ -55,7 +70,7 @@ function MarketIntelContent() {
     return () => {
       cancelled = true;
     };
-  }, [accessToken, from, to, saleyard, species, competitor]);
+  }, [accessToken, debouncedFrom, debouncedTo, debouncedSaleyard, debouncedSpecies, debouncedCompetitor]);
 
   const hasActiveFilters = Boolean(from || to || saleyard || species || competitor);
 
