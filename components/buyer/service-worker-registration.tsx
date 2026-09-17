@@ -4,6 +4,7 @@ import * as React from "react";
 import { useAuthStore } from "@/lib/auth-store";
 import { ensurePushSubscription } from "@/lib/buyer/push-subscribe";
 import { flushPendingEntries, setupAutoSync } from "@/lib/buyer/sync";
+import { flushPendingObservations, setupObservationAutoSync } from "@/lib/buyer/sync-observations";
 
 /**
  * Registers public/sw.js scoped to /buyer/ only (§12.7) — this is the one
@@ -25,12 +26,14 @@ export function ServiceWorkerRegistration() {
 
     const onMessage = (event: MessageEvent) => {
       if (event.data?.type === "flush-buy-entries") void flushPendingEntries(useAuthStore.getState().accessToken);
+      if (event.data?.type === "flush-market-observations") void flushPendingObservations(useAuthStore.getState().accessToken);
     };
     navigator.serviceWorker.addEventListener("message", onMessage);
     return () => navigator.serviceWorker.removeEventListener("message", onMessage);
   }, []);
 
   React.useEffect(() => setupAutoSync(() => useAuthStore.getState().accessToken), []);
+  React.useEffect(() => setupObservationAutoSync(() => useAuthStore.getState().accessToken), []);
 
   return null;
 }

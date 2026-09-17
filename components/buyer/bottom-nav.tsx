@@ -7,9 +7,10 @@ import { strings } from "@/lib/strings";
 
 const TABS = [
   { href: "/buyer", label: strings.buyer.nav.dnbp },
+  { href: "/buyer/instruction", label: strings.buyer.nav.instruction },
   { href: "/buyer/bid-check", label: strings.buyer.nav.bidCheck },
   { href: "/buyer/buy-log", label: strings.buyer.nav.buyLog },
-  { href: "/buyer/instruction", label: strings.buyer.nav.instruction },
+  { href: "/buyer/market-intel", label: strings.buyer.nav.marketIntel },
   { href: "/buyer/scorecard", label: strings.buyer.nav.scorecard },
 ] as const;
 

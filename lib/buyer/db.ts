@@ -1,5 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import type { BuyEntryCreatePayload, BuyEntryResponse, DnbpCurrentResponse } from "@/lib/buyer-api";
+import type { MarketObservationCreatePayload } from "@/lib/market-intel-api";
 
 /**
  * §12.7's offline architecture, the three IndexedDB tables named in the
@@ -25,10 +26,25 @@ export type PendingEntry = {
 
 export type HistoryEntry = BuyEntryResponse;
 
+// The market-intel counterpart of PendingEntry — same offline-queue shape,
+// but there is no `observation_history` table alongside it: the buyer role
+// has no server GET for this data (§ visibility — see
+// lib/market-intel-api.ts's module docstring), so once an item syncs it is
+// simply removed from `pending_observations` and never reappears anywhere
+// on this device, by design.
+export type PendingObservation = {
+  client_uuid: string;
+  payload: MarketObservationCreatePayload;
+  sync_status: SyncStatus;
+  created_at: string;
+  error_message?: string;
+};
+
 class BuyerDatabase extends Dexie {
   dnbp_cache!: Table<CachedDnbp, string>;
   pending_entries!: Table<PendingEntry, string>;
   entry_history!: Table<HistoryEntry, string>;
+  pending_observations!: Table<PendingObservation, string>;
 
   constructor() {
     super("livestock-buyer");
@@ -36,6 +52,9 @@ class BuyerDatabase extends Dexie {
       dnbp_cache: "id",
       pending_entries: "client_uuid, sync_status, created_at",
       entry_history: "client_uuid, trade_date, species, client_created_at",
+    });
+    this.version(2).stores({
+      pending_observations: "client_uuid, sync_status, created_at",
     });
   }
 }
@@ -65,4 +84,13 @@ export async function cacheHistoryEntry(entry: BuyEntryResponse): Promise<void> 
 
 export async function recentHistory(limit = 50): Promise<HistoryEntry[]> {
   return buyerDb.entry_history.orderBy("client_created_at").reverse().limit(limit).toArray();
+}
+
+export async function queueObservation(payload: MarketObservationCreatePayload): Promise<void> {
+  await buyerDb.pending_observations.put({
+    client_uuid: payload.client_uuid,
+    payload,
+    sync_status: "queued",
+    created_at: new Date().toISOString(),
+  });
 }

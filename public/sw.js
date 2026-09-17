@@ -125,4 +125,11 @@ self.addEventListener("sync", (event) => {
       })
     );
   }
+  if (event.tag === "flush-market-observations") {
+    event.waitUntil(
+      self.clients.matchAll({ type: "window" }).then((clients) => {
+        clients.forEach((client) => client.postMessage({ type: "flush-market-observations" }));
+      })
+    );
+  }
 });

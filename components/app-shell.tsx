@@ -21,6 +21,7 @@ const _CONSOLE_NAV = [
   { href: "/reference-data", label: () => strings.shell.nav.referenceData, ownerOnly: false },
   { href: "/buy-instructions", label: () => strings.shell.nav.buyInstructions, ownerOnly: false },
   { href: "/dashboard", label: () => strings.shell.nav.dashboard, ownerOnly: false },
+  { href: "/market-intel", label: () => strings.shell.nav.marketIntel, ownerOnly: false },
   { href: "/users", label: () => strings.shell.nav.users, ownerOnly: true },
 ] as const;
 
