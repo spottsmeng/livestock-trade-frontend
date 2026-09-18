@@ -7,6 +7,7 @@ import { BuyerBottomNav } from "@/components/buyer/bottom-nav";
 import { OfflineBanner, useOnlineStatus } from "@/components/buyer/offline-banner";
 import { InstallPrompt } from "@/components/buyer/install-prompt";
 import { EmptyState } from "@/components/ui/empty-state";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
 import { buyerApi, connectBuyerSocket, type DnbpCurrentResponse, type DnbpSpeciesLine } from "@/lib/buyer-api";
@@ -139,7 +140,14 @@ function DnbpHomeContent() {
           const delta = priceDelta(line);
           return (
           <div key={line.species} className="border-b border-subtle px-4 py-6">
-            <p className="text-lg font-semibold uppercase tracking-wide text-fg-secondary">{line.species}</p>
+            <p className="flex items-center gap-1.5 text-lg font-semibold uppercase tracking-wide text-fg-secondary">
+              {line.species}
+              <InfoTooltip
+                label={`About the ${strings.buyer.dnbpHome.title}`}
+                what={strings.buyer.dnbpHome.tooltips.dnbp.what}
+                how={strings.buyer.dnbpHome.tooltips.dnbp.how}
+              />
+            </p>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <p
                 data-numeric
@@ -149,7 +157,7 @@ function DnbpHomeContent() {
                 ${line.dnbp_per_kg}
               </p>
               {delta !== null ? (
-                <span data-numeric className="text-lg font-medium text-fg-secondary">
+                <span data-numeric className="flex items-center gap-1 text-lg font-medium text-fg-secondary">
                   <span aria-hidden="true">
                     {delta > 0 ? "▲" : "▼"} {delta > 0 ? "+" : "−"}
                     {Math.abs(delta).toFixed(2)}
@@ -158,6 +166,11 @@ function DnbpHomeContent() {
                     {delta > 0 ? strings.buyer.dnbpHome.increasedBy : strings.buyer.dnbpHome.decreasedBy} $
                     {Math.abs(delta).toFixed(2)}
                   </span>
+                  <InfoTooltip
+                    label="About this price change"
+                    what={strings.buyer.dnbpHome.tooltips.delta.what}
+                    how={strings.buyer.dnbpHome.tooltips.delta.how}
+                  />
                 </span>
               ) : null}
             </div>
@@ -169,9 +182,14 @@ function DnbpHomeContent() {
                 : ""}
             </p>
             {line.target_heads ? (
-              <p className="mt-1 text-sm font-medium text-fg-secondary" data-numeric>
+              <p className="mt-1 flex items-center gap-1 text-sm font-medium text-fg-secondary" data-numeric>
                 {Math.round(Number(line.heads_bought))} / {Math.round(Number(line.target_heads))}{" "}
                 {strings.buyer.dnbpHome.headsSuffix} {strings.buyer.dnbpHome.boughtSoFar}
+                <InfoTooltip
+                  label={`About ${strings.buyer.dnbpHome.boughtSoFar}`}
+                  what={strings.buyer.dnbpHome.tooltips.boughtSoFar.what}
+                  how={strings.buyer.dnbpHome.tooltips.boughtSoFar.how}
+                />
               </p>
             ) : null}
           </div>

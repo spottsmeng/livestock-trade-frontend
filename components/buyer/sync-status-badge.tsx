@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { InfoTooltipWrap } from "@/components/ui/info-tooltip";
 import { strings } from "@/lib/strings";
 import type { SyncStatus } from "@/lib/buyer/db";
 
@@ -11,9 +12,12 @@ const VARIANT: Record<SyncStatus, "neutral" | "pass" | "breach"> = {
 };
 
 export function SyncStatusBadge({ status }: { status: SyncStatus }) {
+  const { what, how } = strings.buyer.sync.tooltip;
   return (
-    <Badge variant={VARIANT[status]}>
-      {DOT[status]} {strings.buyer.sync[status]}
-    </Badge>
+    <InfoTooltipWrap what={what} how={how}>
+      <Badge variant={VARIANT[status]} tabIndex={0}>
+        {DOT[status]} {strings.buyer.sync[status]}
+      </Badge>
+    </InfoTooltipWrap>
   );
 }

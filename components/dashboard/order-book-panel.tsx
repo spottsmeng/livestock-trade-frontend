@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat-tile";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { BarList } from "@/components/dataviz/bar-list";
 import { strings } from "@/lib/strings";
 import type { OrderBookResponse } from "@/lib/analytics-api";
@@ -38,7 +39,16 @@ export function OrderBookPanel({ data, loading }: { data: OrderBookResponse | nu
                   <th className="py-1.5 pr-2 font-medium">Species</th>
                   <th className="py-1.5 pr-2 text-right font-medium">Required</th>
                   <th className="py-1.5 pr-2 text-right font-medium">Bought</th>
-                  <th className="py-1.5 text-right font-medium">{s.daysOfCover}</th>
+                  <th className="py-1.5 text-right font-medium">
+                    <span className="inline-flex items-center gap-1">
+                      {s.daysOfCover}
+                      <InfoTooltip
+                        label={`About ${s.daysOfCover}`}
+                        what={s.tooltips.daysOfCover.what}
+                        how={s.tooltips.daysOfCover.how}
+                      />
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -65,7 +75,11 @@ export function OrderBookPanel({ data, loading }: { data: OrderBookResponse | nu
 
       {data ? (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatTile label={s.totalExposure} value={money.format(Number(data.total_exposure_aud))} />
+          <StatTile
+            label={s.totalExposure}
+            value={money.format(Number(data.total_exposure_aud))}
+            tooltip={{ label: `About ${s.totalExposure}`, ...s.tooltips.totalExposure }}
+          />
           <StatTile
             label={strings.dashboard.kpis.headsRequired}
             value={number.format(data.by_species.reduce((sum, r) => sum + Number(r.heads_required), 0))}

@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { DualLineChart } from "@/components/dataviz/dual-line-chart";
 import { strings } from "@/lib/strings";
 import type { DnbpTrendResponse } from "@/lib/analytics-api";
@@ -28,7 +29,10 @@ export function DnbpTrendPanel({
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-fg-primary">{s.title}</h2>
+          <h2 className="flex items-center gap-1.5 text-lg font-semibold text-fg-primary">
+            {s.title}
+            <InfoTooltip label={`About ${s.title}`} what={s.tooltip.what} how={s.tooltip.how} />
+          </h2>
           <p className="mt-1 text-sm text-fg-tertiary">{s.subtitle}</p>
         </div>
         <div className="flex items-center gap-2 text-sm">

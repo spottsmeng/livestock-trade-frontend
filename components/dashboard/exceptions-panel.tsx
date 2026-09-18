@@ -20,10 +20,26 @@ export function ExceptionsPanel({ data, loading }: { data: ExceptionsResponse | 
       ) : (
         <>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatTile label={s.breaches} value={String(data.breaches.length)} />
-            <StatTile label={s.blockedLines} value={String(data.blocked_lines.length)} />
-            <StatTile label={s.stalePublications} value={String(data.stale_publications.length)} />
-            <StatTile label={s.undeliveredInstructions} value={String(data.undelivered_instructions.length)} />
+            <StatTile
+              label={s.breaches}
+              value={String(data.breaches.length)}
+              tooltip={{ label: `About ${s.breaches}`, ...s.tooltips.breaches }}
+            />
+            <StatTile
+              label={s.blockedLines}
+              value={String(data.blocked_lines.length)}
+              tooltip={{ label: `About ${s.blockedLines}`, ...s.tooltips.blockedLines }}
+            />
+            <StatTile
+              label={s.stalePublications}
+              value={String(data.stale_publications.length)}
+              tooltip={{ label: `About ${s.stalePublications}`, ...s.tooltips.stalePublications }}
+            />
+            <StatTile
+              label={s.undeliveredInstructions}
+              value={String(data.undelivered_instructions.length)}
+              tooltip={{ label: `About ${s.undeliveredInstructions}`, ...s.tooltips.undeliveredInstructions }}
+            />
           </div>
 
           <div className="mt-6 grid gap-6 md:grid-cols-2">

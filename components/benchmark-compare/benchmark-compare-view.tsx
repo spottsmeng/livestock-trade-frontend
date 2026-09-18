@@ -4,6 +4,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useAuthStore } from "@/lib/auth-store";
 import { referenceDataApi } from "@/lib/reference-data-api";
 import { strings } from "@/lib/strings";
@@ -73,7 +74,14 @@ export function BenchmarkCompareView() {
       </div>
 
       <Card>
-        <p className="text-sm font-semibold text-fg-primary">{strings.benchmarkCompare.aggregateBySpecies}</p>
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-fg-primary">
+          {strings.benchmarkCompare.aggregateBySpecies}
+          <InfoTooltip
+            label={`About ${strings.benchmarkCompare.aggregateBySpecies}`}
+            what={strings.benchmarkCompare.tooltips.aggregateBySpecies.what}
+            how={strings.benchmarkCompare.tooltips.aggregateBySpecies.how}
+          />
+        </p>
         <div className="mt-3 flex flex-col gap-2">
           {Array.from(bySpecies.entries()).map(([species, speciesRows]) => {
             const aggregateAe = speciesRows.reduce((sum, r) => sum + Number(r.workings?.diff_vs_benchmark ?? 0), 0);
@@ -98,8 +106,26 @@ export function BenchmarkCompareView() {
               <th className="px-4 py-3 font-medium">Species</th>
               <th className="px-4 py-3 font-medium tabular-nums">{strings.benchmarkCompare.sourceOfTruth}</th>
               <th className="px-4 py-3 font-medium tabular-nums">{strings.benchmarkCompare.benchmarkOnly}</th>
-              <th className="px-4 py-3 font-medium tabular-nums">AE (diff)</th>
-              <th className="px-4 py-3 font-medium tabular-nums">{strings.benchmarkCompare.impliedFactor}</th>
+              <th className="px-4 py-3 font-medium tabular-nums">
+                <span className="inline-flex items-center gap-1">
+                  AE (diff)
+                  <InfoTooltip
+                    label="About AE (diff)"
+                    what={strings.benchmarkCompare.tooltips.diffVsBenchmark.what}
+                    how={strings.benchmarkCompare.tooltips.diffVsBenchmark.how}
+                  />
+                </span>
+              </th>
+              <th className="px-4 py-3 font-medium tabular-nums">
+                <span className="inline-flex items-center gap-1">
+                  {strings.benchmarkCompare.impliedFactor}
+                  <InfoTooltip
+                    label={`About ${strings.benchmarkCompare.impliedFactor}`}
+                    what={strings.benchmarkCompare.tooltips.impliedFactor.what}
+                    how={strings.benchmarkCompare.tooltips.impliedFactor.how}
+                  />
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>

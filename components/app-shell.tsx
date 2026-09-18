@@ -23,6 +23,7 @@ const _CONSOLE_NAV = [
   { href: "/dashboard", label: () => strings.shell.nav.dashboard, ownerOnly: false },
   { href: "/market-intel", label: () => strings.shell.nav.marketIntel, ownerOnly: false },
   { href: "/users", label: () => strings.shell.nav.users, ownerOnly: true },
+  { href: "/settings", label: () => strings.shell.nav.settings, ownerOnly: false },
 ] as const;
 
 function ConsoleNav() {
@@ -56,6 +57,7 @@ function ConsoleNav() {
 
 export function AppShell({ title, children }: { title: string; children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuthStore();
 
   async function handleSignOut() {
@@ -65,18 +67,33 @@ export function AppShell({ title, children }: { title: string; children: React.R
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <header className="flex flex-col gap-3 border-b border-subtle bg-surface px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="flex flex-col gap-3 border-b border-subtle bg-surface px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <div className="flex min-w-0 items-center gap-3">
             {/* The one <h1> for every screen mounted under AppShell (§15.6 WCAG —
                 axe-core's page-has-heading-one caught its absence live). Pages that
                 also show their own in-body heading use <h2> for it, not a second h1. */}
             <h1 className="text-lg font-semibold text-fg-primary">{title}</h1>
             {user ? <Badge variant="accent">{strings.shell.roleLabels[user.role]}</Badge> : null}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            {user?.role === "BUYER" ? (
+              <Link
+                href="/buyer/settings"
+                aria-label={strings.shell.nav.settings}
+                aria-current={pathname === "/buyer/settings" ? "page" : undefined}
+                className={cn(
+                  "inline-flex h-9 w-9 items-center justify-center rounded-md text-lg transition-colors",
+                  pathname === "/buyer/settings"
+                    ? "bg-accent-subtle text-accent-default"
+                    : "text-fg-secondary hover:bg-sunken hover:text-fg-primary"
+                )}
+              >
+                <span aria-hidden="true">⚙</span>
+              </Link>
+            ) : null}
             <ThemeToggle />
-            {user ? <span className="text-sm text-fg-secondary">{user.email}</span> : null}
+            {user ? <span className="hidden text-sm text-fg-secondary sm:inline">{user.email}</span> : null}
             <Button variant="secondary" size="sm" onClick={handleSignOut}>
               {strings.shell.signOut}
             </Button>

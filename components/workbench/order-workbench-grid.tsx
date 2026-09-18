@@ -4,9 +4,11 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { CorrectionRequestDialog } from "@/components/workbench/correction-request-dialog";
 import { DnbpProofPanel } from "@/components/workbench/dnbp-proof-panel";
 import { formatDate, formatMoney, formatText } from "@/components/workbench/format";
+import { strings } from "@/lib/strings";
 import type { OrderLine, OrderWorkings, ValidationIssue } from "@/lib/workbench-api";
 
 // §5.1/§8 Appendix A — the spreadsheet letter behind each received column,
@@ -286,8 +288,13 @@ export function OrderWorkbenchGrid({
             </th>
           </tr>
           <tr>
-            <th className="sticky left-0 z-10 border-b border-default bg-surface px-2 py-1">
+            <th className="sticky left-0 z-10 border-b border-default bg-surface px-2 py-1 text-center">
               <span className="sr-only">Status</span>
+              <InfoTooltip
+                label="About the Status column"
+                what={strings.workbench.statusLegend.what}
+                how={strings.workbench.statusLegend.how}
+              />
             </th>
             {RECEIVED_COLUMNS.map((col) => (
               <th
@@ -297,16 +304,31 @@ export function OrderWorkbenchGrid({
                 {col.label}
               </th>
             ))}
-            {WORKINGS_COLUMNS.map((col) => (
-              <th
-                key={col.key}
-                className="whitespace-nowrap border-b border-default bg-surface px-3 py-1.5 text-right text-xs font-medium text-fg-secondary"
-              >
-                {col.label}
-              </th>
-            ))}
+            {WORKINGS_COLUMNS.map((col) => {
+              const tooltip = strings.workbench.columnTooltips[col.key as keyof typeof strings.workbench.columnTooltips];
+              return (
+                <th
+                  key={col.key}
+                  className="whitespace-nowrap border-b border-default bg-surface px-3 py-1.5 text-right text-xs font-medium text-fg-secondary"
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {col.label}
+                    {tooltip ? (
+                      <InfoTooltip label={`About ${col.label}`} what={tooltip.what} how={tooltip.how} />
+                    ) : null}
+                  </span>
+                </th>
+              );
+            })}
             <th className="sticky right-0 z-10 border-b border-default bg-surface px-3 py-1.5">
-              <span className="sr-only">AC — Bing DNBP</span>
+              <span className="inline-flex items-center justify-end gap-1">
+                <span className="sr-only">AC — Bing DNBP</span>
+                <InfoTooltip
+                  label="About AC — Bing Do Not Buy Price"
+                  what={strings.workbench.columnTooltips.bing_dnbp.what}
+                  how={strings.workbench.columnTooltips.bing_dnbp.how}
+                />
+              </span>
             </th>
           </tr>
         </thead>

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/ui/empty-state";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
@@ -260,7 +261,15 @@ function BuyLogContent() {
         {saving ? strings.buyer.buyLog.saving : strings.buyer.buyLog.save}
       </Button>
 
-      <div className="grid grid-cols-2 gap-2 border-t border-subtle pt-4 text-sm sm:grid-cols-5">
+      <div className="flex items-center gap-1 border-t border-subtle pt-4 text-sm text-fg-tertiary">
+        <span>Today&apos;s totals</span>
+        <InfoTooltip
+          label="About today's totals"
+          what={strings.buyer.buyLog.tooltips.totals.what}
+          how={strings.buyer.buyLog.tooltips.totals.how}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
         <Total label={strings.buyer.buyLog.totals.heads} value={String(totals.totalHeads)} />
         <Total label={strings.buyer.buyLog.totals.kg} value={totals.totalKg.toFixed(1)} />
         <Total label={strings.buyer.buyLog.totals.spend} value={`$${totals.totalSpend.toFixed(2)}`} />

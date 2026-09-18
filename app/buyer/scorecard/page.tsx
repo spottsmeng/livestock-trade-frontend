@@ -6,6 +6,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat-tile";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { BuyerBottomNav } from "@/components/buyer/bottom-nav";
 import { BarList } from "@/components/dataviz/bar-list";
 import { useAuthStore } from "@/lib/auth-store";
@@ -103,20 +104,30 @@ function ScorecardContent() {
               label={s.headsBought}
               value={String(data.heads_bought)}
               hint={data.heads_target !== null ? `${s.headsTarget} ${Math.round(Number(data.heads_target))}` : undefined}
+              tooltip={{ label: `About ${s.headsBought}`, ...s.tooltips.headsBought }}
             />
-            <StatTile label={s.headroomCaptured} value={money.format(Number(data.headroom_captured_aud))} />
+            <StatTile
+              label={s.headroomCaptured}
+              value={money.format(Number(data.headroom_captured_aud))}
+              tooltip={{ label: `About ${s.headroomCaptured}`, ...s.tooltips.headroomCaptured }}
+            />
             <StatTile
               label={s.avgPaid}
               value={data.avg_paid_per_kg !== null ? perKg.format(Number(data.avg_paid_per_kg)) : "—"}
+              tooltip={{ label: `About ${s.avgPaid}`, ...s.tooltips.avgPaid }}
             />
             <StatTile
               label={s.avgDnbp}
               value={data.avg_dnbp_per_kg !== null ? perKg.format(Number(data.avg_dnbp_per_kg)) : "—"}
+              tooltip={{ label: `About ${s.avgDnbp}`, ...s.tooltips.avgDnbp }}
             />
           </div>
 
           <Card className="flex items-center justify-between">
-            <span className="text-sm font-medium text-fg-secondary">{s.breaches}</span>
+            <span className="flex items-center gap-1 text-sm font-medium text-fg-secondary">
+              {s.breaches}
+              <InfoTooltip label={`About ${s.breaches}`} what={s.tooltips.breaches.what} how={s.tooltips.breaches.how} />
+            </span>
             <Badge variant={data.breach_count > 0 ? "breach" : "pass"}>
               {data.breach_count} ({pct.format(Number(data.breach_rate))})
             </Badge>

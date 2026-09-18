@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { InfoTooltipWrap } from "@/components/ui/info-tooltip";
 import { strings } from "@/lib/strings";
 import type { BidStatus } from "@/lib/buyer/bidcheck";
 
@@ -13,9 +14,12 @@ const LABEL: Record<BidStatus, string> = {
 };
 
 export function StatusBadge({ status, className }: { status: BidStatus; className?: string }) {
+  const { what, how } = strings.buyer.statusBadge.tooltip;
   return (
-    <Badge variant={VARIANT[status]} className={className}>
-      {ICON[status]} {LABEL[status]}
-    </Badge>
+    <InfoTooltipWrap what={what} how={how}>
+      <Badge variant={VARIANT[status]} className={className} tabIndex={0}>
+        {ICON[status]} {LABEL[status]}
+      </Badge>
+    </InfoTooltipWrap>
   );
 }

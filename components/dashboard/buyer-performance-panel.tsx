@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { BarList } from "@/components/dataviz/bar-list";
 import { strings } from "@/lib/strings";
 import type { BuyerPerformanceResponse } from "@/lib/analytics-api";
@@ -26,8 +27,26 @@ export function BuyerPerformancePanel({ data, loading }: { data: BuyerPerformanc
               <thead>
                 <tr className="border-b border-subtle text-left text-fg-tertiary">
                   <th className="py-1.5 pr-2 font-medium">Buyer</th>
-                  <th className="py-1.5 pr-2 text-right font-medium">Headroom</th>
-                  <th className="py-1.5 text-right font-medium">Breach rate</th>
+                  <th className="py-1.5 pr-2 text-right font-medium">
+                    <span className="inline-flex items-center gap-1">
+                      Headroom
+                      <InfoTooltip
+                        label="About Headroom"
+                        what={s.tooltips.headroomCaptured.what}
+                        how={s.tooltips.headroomCaptured.how}
+                      />
+                    </span>
+                  </th>
+                  <th className="py-1.5 text-right font-medium">
+                    <span className="inline-flex items-center gap-1">
+                      Breach rate
+                      <InfoTooltip
+                        label="About breach rate"
+                        what={s.tooltips.breachRate.what}
+                        how={s.tooltips.breachRate.how}
+                      />
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -47,7 +66,14 @@ export function BuyerPerformancePanel({ data, loading }: { data: BuyerPerformanc
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-medium text-fg-secondary">{s.bySaleyard}</h3>
+            <h3 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-fg-secondary">
+              {s.bySaleyard}
+              <InfoTooltip
+                label="About Headroom captured"
+                what={s.tooltips.headroomCaptured.what}
+                how={s.tooltips.headroomCaptured.how}
+              />
+            </h3>
             <BarList
               rows={data.by_saleyard.map((r) => ({ label: r.saleyard, value: Number(r.headroom_captured_aud) }))}
               valueLabel={s.headroomCaptured}

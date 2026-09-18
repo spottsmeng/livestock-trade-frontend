@@ -59,6 +59,19 @@ export const strings = {
       dashboard: "Dashboard",
       marketIntel: "Market Intel",
       users: "Users",
+      settings: "Settings",
+    },
+  },
+  onboarding: {
+    whatLabel: "What is this?",
+    howLabel: "How it's worked out",
+  },
+  settings: {
+    title: "Settings",
+    onboardingTooltips: {
+      title: "Onboarding tooltips",
+      description:
+        "Shows small \"i\" icons next to numbers that are calculated, explaining what they mean and how they're worked out. Turn this off once you know your way around.",
     },
   },
   home: {
@@ -85,6 +98,24 @@ export const strings = {
       title: "Publication",
       none: "Nothing published yet",
       live: "Live since",
+    },
+    tooltips: {
+      deadline: {
+        what: "The cut-off time today's spreadsheet must arrive by for a Do Not Buy Price to be published in time for buyers.",
+        how: "Counts down to 1:00pm Melbourne time. Once it passes without a submission, this tile turns red.",
+      },
+      pipeline: {
+        what: "The five steps a submission moves through before buyers see a price: Receive the file, Validate it, Calculate the ceiling price, Review any warnings, then Publish.",
+        how: "Each step turns green automatically once its own condition is met — for example \"Validate\" only clears once no line is blocked.",
+      },
+      totalExposure: {
+        what: "The total dollar value of livestock this business is currently committed to buying, across every active order line.",
+        how: "Adds up the AUD amount on every active line in today's submission.",
+      },
+      headsRequired: {
+        what: "The total number of animals still needed to fulfil every active order.",
+        how: "Adds up the estimated head count on every active line in today's submission.",
+      },
     },
   },
   referenceData: {
@@ -116,6 +147,12 @@ export const strings = {
       activating: "Activating…",
       confirmTitle: "Confirm activation",
       confirmBody: "This takes effect immediately for every active order line. This cannot be undone (only superseded by a later version).",
+      tooltips: {
+        aggregateExposure: {
+          what: "How much cheaper or more expensive, in total, every active line's ceiling price becomes if you activate this change.",
+          how: "Every active line is re-priced under the draft version, and the difference from its current price is added up. Negative (green) means a cheaper ceiling for the business; positive (red) means a more expensive one.",
+        },
+      },
     },
     abattoir: {
       title: "Abattoir tables",
@@ -144,6 +181,20 @@ export const strings = {
     impliedFactor: "Financier implied factor",
     noBenchmark: "No benchmark in this submission",
     aggregateBySpecies: "Aggregate impact by species",
+    tooltips: {
+      aggregateBySpecies: {
+        what: "For each species, how far our own ceiling price sits from the abattoir's benchmark price, added up across every active line.",
+        how: "Adds up (Bing DNBP − abattoir benchmark) for every active line of that species. Our own price is always the one buyers must not exceed — the benchmark is reference only.",
+      },
+      diffVsBenchmark: {
+        what: "How far this line's Bing DNBP sits from the abattoir's own benchmark price for the same line.",
+        how: "Bing DNBP minus the abattoir benchmark. Shown in bold red when the gap is more than 15% of the Bing DNBP — a difference that size is worth a second look.",
+      },
+      impliedFactor: {
+        what: "For lines priced off a financier margin, the multiplier that the abattoir's benchmark implies was used — useful for sense-checking their number, never used to set our own price.",
+        how: "Abattoir benchmark ÷ NRV per kg for this exact line, worked backwards from their figures. \"Everhealth\" alongside it (when shown) is our own agreed factor for that species, for comparison.",
+      },
+    },
   },
   correctionRequests: {
     title: "Correction Requests",
@@ -197,6 +248,20 @@ export const strings = {
       acknowledge: "Acknowledge",
       acknowledging: "Acknowledging…",
       acknowledged: "Acknowledged",
+      tooltips: {
+        schw: {
+          what: "The total kilograms you're expected to deliver on this line, in the units the abattoir invoices on.",
+          how: "Expected no of head × weight requirement per head.",
+        },
+        targetHeads: {
+          what: "How many animals you're expected to buy for this line.",
+          how: "Set by the office when the instruction was issued, based on this line's order volume.",
+        },
+        weightRequirement: {
+          what: "The average weight per head this line is planned around.",
+          how: "Set by the office when the instruction was issued, based on the order's typical carcass weight for this species.",
+        },
+      },
     },
     dnbpHome: {
       title: "Do Not Buy Price",
@@ -210,6 +275,20 @@ export const strings = {
       increasedBy: "increased by",
       decreasedBy: "decreased by",
       boughtSoFar: "bought so far",
+      tooltips: {
+        dnbp: {
+          what: "The most you may pay per kilogram for this species today. Never bid above this.",
+          how: "Set by the office from today's sell price and cost model, and published to you the moment it changes.",
+        },
+        delta: {
+          what: "How much this price moved since it was last published for this species.",
+          how: "Today's price minus the previous published price. No arrow shown at all means it didn't change.",
+        },
+        boughtSoFar: {
+          what: "How many head have been bought against today's target for this species so far, across all buyers.",
+          how: "A running count of heads logged against this publication, updating live as any buyer logs a purchase.",
+        },
+      },
     },
     bidCheck: {
       title: "Bid Check",
@@ -226,6 +305,16 @@ export const strings = {
       breach: "BREACH",
       logThisBuy: "Log this buy",
       logAnyway: "Log this buy anyway",
+      tooltips: {
+        maxPrice: {
+          what: "The most you can pay per head for an animal of this weight without going over the Do Not Buy Price.",
+          how: "Do Not Buy Price per kg × weight, rounded down to the nearest cent. Works out the moment you enter weight, before you've even decided a price to bid.",
+        },
+        impliedPrice: {
+          what: "What the price you typed actually works out to per kilogram — the number that's compared against the ceiling.",
+          how: "Price per head ÷ weight. PASS means comfortably under the ceiling, CLOSE means within 5% of it, BREACH means over it.",
+        },
+      },
     },
     buyLog: {
       title: "Buy Log",
@@ -245,6 +334,12 @@ export const strings = {
       duplicateWarning: "Same agent, pen and price logged in the last 2 minutes — check this isn't a duplicate.",
       totals: { heads: "Heads", kg: "Total kg", spend: "Spend", avg: "Avg $/kg", breaches: "Breaches" },
       empty: "No buys logged yet today.",
+      tooltips: {
+        totals: {
+          what: "A running summary of everything you've logged today: total animals, total weight, total spend, your average price per kilogram, and how many were over the ceiling.",
+          how: "Added up live from every buy entry logged today, including any still waiting to sync from offline.",
+        },
+      },
     },
     marketIntel: {
       title: "Market Intel",
@@ -269,6 +364,16 @@ export const strings = {
       synced: "Synced",
       conflict: "Failed — will retry",
       syncNow: "Sync now",
+      tooltip: {
+        what: "Whether this entry has safely reached the office's server yet — useful when you've been buying with no signal.",
+        how: "Queued: saved on this phone, waiting for a connection. Syncing: sending now. Synced: confirmed received by the server. Failed: it will keep retrying automatically.",
+      },
+    },
+    statusBadge: {
+      tooltip: {
+        what: "How this bid compares with the Do Not Buy Price ceiling.",
+        how: "PASS: comfortably under the ceiling. CLOSE: within 5% of it — worth a second look. BREACH: over the ceiling — you'll need to give a reason to log it.",
+      },
     },
     install: {
       prompt: "Install this app for offline use at the yard.",
@@ -301,6 +406,20 @@ export const strings = {
       fills: "Fills (kg)",
       balance: "Balance",
     },
+    tooltips: {
+      schw: {
+        what: "Standard Carcass Hot Weight — the total kilograms this line needs buyers to deliver, in the units the abattoir invoices on.",
+        how: "Expected number of head × weight requirement per head.",
+      },
+      expectedCost: {
+        what: "What this line is expected to cost in total, if every head is bought right at the ceiling price.",
+        how: "Do not buy price per kg × weight requirement × expected number of head — deliberately uses the ceiling (AC), not Peter's expectation, as the planning number.",
+      },
+      balance: {
+        what: "How much of this line's SCHW is still outstanding after the buys logged so far.",
+        how: "SCHW minus the total kg already recorded against this line ('Fills').",
+      },
+    },
     addFill: "Add fill",
     fillLabel: "Label",
     fillAmount: "Amount (kg)",
@@ -321,6 +440,32 @@ export const strings = {
       expectedCost: "Expected Cost (C)",
       actualCost: "Actual Cost (D)",
       costVariance: "Cost Variance (C − D)",
+    },
+    reconciliationTooltips: {
+      orderedSchw: {
+        what: "The total kilograms this week's Buy Instructions asked buyers to deliver.",
+        how: "Adds up SCHW (expected heads × weight requirement) across every line issued this trading week.",
+      },
+      boughtSchw: {
+        what: "The total kilograms buyers actually bought this week, from every logged buy entry.",
+        how: "Adds up (weight per head × head count) across every buy entry recorded this trading week — the same formula used to set the target in the first place.",
+      },
+      surplusShortfall: {
+        what: "Whether buyers bought more or less than instructed this week. A positive number means we're short of the target; negative means we overbought.",
+        how: "Ordered SCHW (A) minus Bought SCHW (B).",
+      },
+      expectedCost: {
+        what: "What this week's buying was expected to cost, if every kilogram was bought right at the ceiling price.",
+        how: "Adds up each line's Expected Livestock Cost (ceiling price × weight requirement) across the week.",
+      },
+      actualCost: {
+        what: "What this week's buying actually cost, from the real prices paid.",
+        how: "Adds up (price paid per head × head count) across every buy entry recorded this trading week.",
+      },
+      costVariance: {
+        what: "How much cheaper or more expensive this week's actual buying was compared with plan. Positive means we spent less than expected — a saving.",
+        how: "Expected Cost (C) minus Actual Cost (D).",
+      },
     },
     export: { title: "Export", pdf: "PDF", xlsx: "XLSX", exporting: "Exporting…" },
   },
@@ -352,6 +497,56 @@ export const strings = {
       recalculateToRepublish: "Recalculate this snapshot to review and publish again.",
       supersededButton: "Superseded",
       supersededNote: "A later submission has since been published — this snapshot's price is no longer current.",
+      tooltips: {
+        priceChange: {
+          what: "How much this species' Do Not Buy Price moved compared with the last time it was published.",
+          how: "New price minus previous published price, shown both in AUD/kg and as a percentage of the previous price. No arrow at all means the price didn't change.",
+        },
+      },
+    },
+  },
+  workbench: {
+    statusLegend: {
+      what: "A quick read on whether this order line is ready to publish.",
+      how: "⛔ Blocked — a serious data problem must be resolved first. ✉ Correction requested — waiting on the abattoir. ⚠ Warning — needs review but doesn't block publishing. ✓ Ready — no open issues.",
+    },
+    columnTooltips: {
+      adjusted_price_per_kg: {
+        what: "The sell price with the CIF (freight/insurance) buffer already stripped out — the starting point every other Workings column builds from.",
+        how: "Sell price (G) minus the CIF buffer, applied the same way regardless of incoterm (CIF or FAS).",
+      },
+      pack_cost_per_kg: {
+        what: "The packaging cost for this line, expressed per kilogram instead of per head.",
+        how: "Pack cost per head (M) ÷ this species' standard weight.",
+      },
+      offal_return_per_kg: {
+        what: "The value recovered from offal for this line, expressed per kilogram instead of per head.",
+        how: "Offal return per head (N) ÷ this species' standard weight.",
+      },
+      skin_return_per_kg: {
+        what: "The value recovered from skins for this line, expressed per kilogram instead of per head.",
+        how: "Skin return per head (O) ÷ this species' standard weight.",
+      },
+      profit_on_peter_costs: {
+        what: "A supporting profit check against Peter's own cost expectation for this line — not the number used to set the ceiling price.",
+        how: "Adjusted price (X) minus Peter's expectation (L), minus pack cost (Y), plus offal return (Z), plus skin return (AA).",
+      },
+      profit_on_bing_dnbp: {
+        what: "The margin left over once buyers pay right up to our own ceiling price — the real profit check.",
+        how: "Adjusted price (X) minus Bing DNBP (AC), minus pack cost (Y), plus offal return (Z), plus skin return (AA).",
+      },
+      diff_vs_benchmark: {
+        what: "How far our ceiling price sits from the abattoir's own benchmark for this line.",
+        how: "Bing DNBP (AC) minus the abattoir's benchmark price.",
+      },
+      diff_vs_peter: {
+        what: "How far our ceiling price sits below Peter's cost expectation — this should normally be negative; if it isn't, the safety margin has been eroded.",
+        how: "Bing DNBP (AC) minus Peter's expected livestock cost per kg.",
+      },
+      bing_dnbp: {
+        what: "The Do Not Buy Price — the single ceiling price buyers must not pay over for this line. This is the number that gets published.",
+        how: "(Sell price minus CIF buffer) × this species' DNBP factor. Deliberately uses only these three inputs — nothing else on the line affects it. Click the value, or the \"proof\" button, to see the exact numbers used.",
+      },
     },
   },
   dashboard: {
@@ -368,6 +563,16 @@ export const strings = {
         daysOfCoverHint:
           "Remaining heads needed ÷ the trailing 7-day bought rate. Shown as — when nothing has been bought in the last 7 days.",
         totalExposure: "Total active exposure",
+        tooltips: {
+          daysOfCover: {
+            what: "At the current buying pace, how many more days it will take to fully cover this species' order — an early warning if buying is falling behind.",
+            how: "Remaining heads still needed, divided by the average heads bought per day over the last 7 days. Shown as — if nothing has been bought in the last week.",
+          },
+          totalExposure: {
+            what: "The total dollar value of livestock this business is currently committed to buying, across every active order line.",
+            how: "Adds up the AUD amount on every active line in the latest submission (only the latest, so nothing is double-counted across snapshots).",
+          },
+        },
       },
       dnbpTrend: {
         title: "DNBP trend",
@@ -376,6 +581,10 @@ export const strings = {
         daysLabel: "Trailing days",
         heroLabel: "Published DNBP",
         referenceLabel: "Actual paid $/kg",
+        tooltip: {
+          what: "How the ceiling price we published compares, day by day, with what buyers actually paid at the yard. A widening gap means buyers are leaving money on the table; a shrinking gap means we're buying closer to the ceiling.",
+          how: "\"Published DNBP\" is the price from each publication as it went out. \"Actual paid $/kg\" is the average implied price (price per head ÷ weight) across that day's logged buy entries.",
+        },
       },
       buyerPerformance: {
         title: "Buyer performance",
@@ -383,16 +592,34 @@ export const strings = {
         byBuyer: "By buyer",
         bySaleyard: "By saleyard",
         headroomCaptured: "Headroom captured (AUD)",
+        tooltips: {
+          headroomCaptured: {
+            what: "The total dollar saving this buyer (or saleyard) delivered by buying under the ceiling price.",
+            how: "Adds up (DNBP per kg minus the price actually paid per kg) × weight × head count, across every buy they logged. A breach (paying over the ceiling) reduces this figure.",
+          },
+          breachRate: {
+            what: "The share of this buyer's logged purchases that went over the Do Not Buy Price ceiling.",
+            how: "Number of breaches ÷ total buys logged, shown as a percentage with the raw count alongside.",
+          },
+        },
       },
       marginBridge: {
         title: "Margin bridge",
         subtitle: "From sell price through the CIF buffer to the Do Not Buy Price",
+        tooltip: {
+          what: "Shows, step by step, how the sell price is turned into the ceiling price buyers must not exceed — and, separately, the supporting numbers used to sanity-check margin.",
+          how: "Top row (source of truth): Sell price → minus CIF buffer → the Bing Do Not Buy Price. Bottom row (supporting analysis): pack cost, offal return and skin return per kg, feeding a separate profit check. The two rows are deliberately not added together into one waterfall — they answer different questions, and the bottom row never determines the ceiling price. All figures are averaged across every active line.",
+        },
       },
       fulfilment: {
         title: "Fulfilment",
         subtitle: "Instructed vs bought SCHW, by trade date",
         instructed: "Instructed SCHW (kg)",
         bought: "Bought SCHW (kg)",
+        tooltip: {
+          what: "For each trade date, how many kilograms we told buyers to source (instructed) versus how many they actually delivered (bought) — the gap is unfilled demand.",
+          how: "Instructed = the SCHW (heads × weight requirement) on that date's approved Buy Instructions. Bought = (weight × head count) summed across that date's logged buy entries.",
+        },
       },
       liveBuying: {
         title: "Live buying progress",
@@ -400,6 +627,10 @@ export const strings = {
         target: "Target",
         boughtSoFar: "Bought so far",
         none: "Nothing published yet.",
+        tooltip: {
+          what: "How close today's buying is to the target head count for the currently published price, updating live as buyers log purchases.",
+          how: "The bar fills to (heads bought so far ÷ target heads), capped at 100% — it doesn't shrink back down if buying overshoots the target.",
+        },
       },
       exceptions: {
         title: "Exceptions",
@@ -410,6 +641,24 @@ export const strings = {
         undeliveredInstructions: "Undelivered instructions",
         undeliveredPublications: "Undelivered to buyer",
         none: "None in this window.",
+        tooltips: {
+          breaches: {
+            what: "Buys logged where the buyer paid more than the Do Not Buy Price ceiling.",
+            how: "Counts every logged buy entry flagged as a breach at the moment it was recorded — the flag is locked in then and doesn't change if prices are republished later.",
+          },
+          blockedLines: {
+            what: "Order lines with a data problem serious enough that a price can't be trusted or published for them yet.",
+            how: "Counts active order lines carrying at least one validation issue of the most severe kind (\"BLOCK\") — these must be resolved (usually via a correction request) before publishing.",
+          },
+          stalePublications: {
+            what: "Published prices that are now old enough that buyers may be acting on out-of-date information.",
+            how: "Hours since the publication went out, compared against this org's configured staleness cut-off. Only publications past that cut-off are listed.",
+          },
+          undeliveredInstructions: {
+            what: "Buy Instructions or price publications that a buyer hasn't yet acknowledged receiving.",
+            how: "Instructions still in \"Issued\" status with no acknowledgement, plus publication deliveries with no acknowledged timestamp.",
+          },
+        },
       },
     },
     kpis: {
@@ -419,6 +668,28 @@ export const strings = {
       openCorrections: "Open correction requests",
       breaches: "Breaches",
       blockedLines: "Blocked lines",
+    },
+    kpiTooltips: {
+      activeExposure: {
+        what: "The total dollar value of livestock currently committed to being bought, across the business.",
+        how: "Same figure as the Order Book panel's \"Total active exposure\" — a rollup of the latest submission's active lines, not a separate calculation.",
+      },
+      headsRequired: {
+        what: "The total number of animals still needed across every active order.",
+        how: "Same figure as the Order Book panel, restated here for a quick top-line view.",
+      },
+      headsBought: {
+        what: "The total number of animals bought so far against active orders.",
+        how: "Same figure as the Order Book panel, restated here for a quick top-line view.",
+      },
+      breaches: {
+        what: "How many logged buys, across the whole business, went over the ceiling price.",
+        how: "Same count as the Exceptions panel's Breaches tile.",
+      },
+      blockedLines: {
+        what: "How many active order lines have a data problem serious enough to block pricing.",
+        how: "Same count as the Exceptions panel's Blocked lines tile.",
+      },
     },
   },
   scorecard: {
@@ -434,6 +705,28 @@ export const strings = {
     breaches: "Breaches",
     spendBySaleyard: "Spend by saleyard",
     noEntries: "No buys logged in this range yet.",
+    tooltips: {
+      headsBought: {
+        what: "How many animals you've bought in this date range, and how that compares with the target for the same publications.",
+        how: "Counts every buy entry you logged in the range. The target is the sum of target head counts on the publications covering that same species and window.",
+      },
+      headroomCaptured: {
+        what: "The total dollar saving you delivered by buying under the ceiling price — your own contribution, not a ranking against other buyers.",
+        how: "Adds up (Do Not Buy Price minus the price you actually paid, per kg) × weight × head count, across every buy you logged in this range.",
+      },
+      avgPaid: {
+        what: "The average price per kilogram you actually paid across your buys in this range.",
+        how: "Total spend ÷ total kilograms bought, across every buy entry in the range.",
+      },
+      avgDnbp: {
+        what: "The average ceiling price you were working to across your buys in this range.",
+        how: "Average of the published Do Not Buy Price per kg that applied to each of your buys in the range.",
+      },
+      breaches: {
+        what: "How many of your buys in this range went over the ceiling price.",
+        how: "Count of your buy entries flagged as a breach when logged, shown with the rate (breaches ÷ total buys).",
+      },
+    },
   },
   marketIntel: {
     title: "Market Intel",

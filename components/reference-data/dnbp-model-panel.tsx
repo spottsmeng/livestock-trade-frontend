@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
@@ -180,11 +181,16 @@ function ImpactAndActivate({ version, onActivated }: { version: ReferenceDataVer
         <span>
           {impact.lines_affected} {strings.referenceData.impact.linesAffected}
         </span>
-        <span className="tabular-nums">
+        <span className="inline-flex items-center gap-1 tabular-nums">
           {strings.referenceData.impact.aggregateExposure}:{" "}
           <strong className={exposure < 0 ? "text-status-pass-fg" : exposure > 0 ? "text-status-breach-fg" : ""}>
             {exposure.toLocaleString("en-AU", { style: "currency", currency: "AUD" })}
           </strong>
+          <InfoTooltip
+            label={`About ${strings.referenceData.impact.aggregateExposure}`}
+            what={strings.referenceData.impact.tooltips.aggregateExposure.what}
+            how={strings.referenceData.impact.tooltips.aggregateExposure.how}
+          />
         </span>
       </div>
 

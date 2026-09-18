@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { strings } from "@/lib/strings";
 import type { SpeciesProgress } from "@/lib/publications-api";
 
@@ -9,7 +10,10 @@ export function LiveBuyingPanel({ data, loading }: { data: SpeciesProgress | nul
 
   return (
     <Card>
-      <h2 className="text-lg font-semibold text-fg-primary">{s.title}</h2>
+      <h2 className="flex items-center gap-1.5 text-lg font-semibold text-fg-primary">
+        {s.title}
+        <InfoTooltip label={`About ${s.title}`} what={s.tooltip.what} how={s.tooltip.how} />
+      </h2>
       <p className="mt-1 text-sm text-fg-tertiary">{s.subtitle}</p>
 
       {loading ? (

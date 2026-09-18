@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import {
   Dialog,
   DialogClose,
@@ -546,8 +547,13 @@ export function PublishPanel({
 
       {published ? (
         <div className="mt-6 border-t border-subtle pt-4">
-          <p className="text-sm font-semibold text-fg-primary">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-fg-primary">
             {strings.publication.publish.summaryTitle}
+            <InfoTooltip
+              label="About the price change shown per species"
+              what={strings.publication.publish.tooltips.priceChange.what}
+              how={strings.publication.publish.tooltips.priceChange.how}
+            />
           </p>
           <Badge variant={published.buyer_notified ? "pass" : "neutral"} className="mt-2">
             {published.buyer_notified

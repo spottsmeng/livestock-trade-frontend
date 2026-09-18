@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { toast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api-client";
 import { useAuthStore } from "@/lib/auth-store";
@@ -193,14 +194,41 @@ function BuyInstructionDetailContent({ id }: { id: string }) {
             <thead>
               <tr className="border-b border-subtle text-left text-fg-tertiary">
                 <th className="py-2 pr-3">{strings.buyInstructions.columns.contract}</th>
-                <th className="py-2 pr-3 text-right">{strings.buyInstructions.columns.schw}</th>
+                <th className="py-2 pr-3 text-right">
+                  <span className="inline-flex items-center gap-1">
+                    {strings.buyInstructions.columns.schw}
+                    <InfoTooltip
+                      label={`About ${strings.buyInstructions.columns.schw}`}
+                      what={strings.buyInstructions.tooltips.schw.what}
+                      how={strings.buyInstructions.tooltips.schw.how}
+                    />
+                  </span>
+                </th>
                 <th className="py-2 pr-3 text-right">{strings.buyInstructions.columns.expectedHeads}</th>
                 <th className="py-2 pr-3 text-right">{strings.buyInstructions.columns.weightRequirement}</th>
                 <th className="py-2 pr-3 text-right font-semibold text-fg-primary">{strings.buyInstructions.columns.dnbp}</th>
                 <th className="py-2 pr-3 text-right">{strings.buyInstructions.columns.petersExpectation}</th>
-                <th className="py-2 pr-3 text-right">{strings.buyInstructions.columns.expectedCost}</th>
+                <th className="py-2 pr-3 text-right">
+                  <span className="inline-flex items-center gap-1">
+                    {strings.buyInstructions.columns.expectedCost}
+                    <InfoTooltip
+                      label={`About ${strings.buyInstructions.columns.expectedCost}`}
+                      what={strings.buyInstructions.tooltips.expectedCost.what}
+                      how={strings.buyInstructions.tooltips.expectedCost.how}
+                    />
+                  </span>
+                </th>
                 <th className="py-2 pr-3">{strings.buyInstructions.columns.fills}</th>
-                <th className="py-2 text-right">{strings.buyInstructions.columns.balance}</th>
+                <th className="py-2 text-right">
+                  <span className="inline-flex items-center gap-1">
+                    {strings.buyInstructions.columns.balance}
+                    <InfoTooltip
+                      label={`About ${strings.buyInstructions.columns.balance}`}
+                      what={strings.buyInstructions.tooltips.balance.what}
+                      how={strings.buyInstructions.tooltips.balance.how}
+                    />
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -321,15 +349,36 @@ function BuyInstructionDetailContent({ id }: { id: string }) {
           <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-2 border-t border-subtle pt-4 text-sm sm:grid-cols-3">
             <SummaryRow label={strings.buyInstructions.reconciliation.actualHeads} value={String(reconciliation.summary.actual_heads)} />
             <SummaryRow label={strings.buyInstructions.reconciliation.expectedHeads} value={money(reconciliation.summary.expected_heads)} />
-            <SummaryRow label={strings.buyInstructions.reconciliation.orderedSchw} value={money(reconciliation.summary.ordered_schw)} />
-            <SummaryRow label={strings.buyInstructions.reconciliation.boughtSchw} value={money(reconciliation.summary.bought_schw)} />
+            <SummaryRow
+              label={strings.buyInstructions.reconciliation.orderedSchw}
+              value={money(reconciliation.summary.ordered_schw)}
+              tooltip={strings.buyInstructions.reconciliationTooltips.orderedSchw}
+            />
+            <SummaryRow
+              label={strings.buyInstructions.reconciliation.boughtSchw}
+              value={money(reconciliation.summary.bought_schw)}
+              tooltip={strings.buyInstructions.reconciliationTooltips.boughtSchw}
+            />
             <SummaryRow
               label={strings.buyInstructions.reconciliation.surplusShortfall}
               value={money(reconciliation.summary.surplus_shortfall_schw)}
+              tooltip={strings.buyInstructions.reconciliationTooltips.surplusShortfall}
             />
-            <SummaryRow label={strings.buyInstructions.reconciliation.expectedCost} value={money(reconciliation.summary.expected_cost)} />
-            <SummaryRow label={strings.buyInstructions.reconciliation.actualCost} value={money(reconciliation.summary.actual_cost)} />
-            <SummaryRow label={strings.buyInstructions.reconciliation.costVariance} value={money(reconciliation.summary.cost_variance)} />
+            <SummaryRow
+              label={strings.buyInstructions.reconciliation.expectedCost}
+              value={money(reconciliation.summary.expected_cost)}
+              tooltip={strings.buyInstructions.reconciliationTooltips.expectedCost}
+            />
+            <SummaryRow
+              label={strings.buyInstructions.reconciliation.actualCost}
+              value={money(reconciliation.summary.actual_cost)}
+              tooltip={strings.buyInstructions.reconciliationTooltips.actualCost}
+            />
+            <SummaryRow
+              label={strings.buyInstructions.reconciliation.costVariance}
+              value={money(reconciliation.summary.cost_variance)}
+              tooltip={strings.buyInstructions.reconciliationTooltips.costVariance}
+            />
           </div>
         </Card>
       ) : null}
@@ -337,10 +386,21 @@ function BuyInstructionDetailContent({ id }: { id: string }) {
   );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+function SummaryRow({
+  label,
+  value,
+  tooltip,
+}: {
+  label: string;
+  value: string;
+  tooltip?: { what: string; how: string };
+}) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-fg-tertiary">{label}</span>
+      <span className="flex items-center gap-1 text-fg-tertiary">
+        {label}
+        {tooltip ? <InfoTooltip label={`About ${label}`} what={tooltip.what} how={tooltip.how} /> : null}
+      </span>
       <span className="font-medium" data-numeric>
         {value}
       </span>

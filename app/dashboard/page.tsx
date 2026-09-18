@@ -161,23 +161,31 @@ function DashboardContent() {
         <StatTile
           label={strings.dashboard.kpis.activeExposure}
           value={overview ? money.format(Number(overview.active_exposure_aud)) : "—"}
+          tooltip={{ label: `About ${strings.dashboard.kpis.activeExposure}`, ...strings.dashboard.kpiTooltips.activeExposure }}
         />
         <StatTile
           label={strings.dashboard.kpis.headsRequired}
           value={overview ? number.format(Number(overview.heads_required_total)) : "—"}
+          tooltip={{ label: `About ${strings.dashboard.kpis.headsRequired}`, ...strings.dashboard.kpiTooltips.headsRequired }}
         />
         <StatTile
           label={strings.dashboard.kpis.headsBought}
           value={overview ? number.format(overview.heads_bought_total) : "—"}
+          tooltip={{ label: `About ${strings.dashboard.kpis.headsBought}`, ...strings.dashboard.kpiTooltips.headsBought }}
         />
         <StatTile
           label={strings.dashboard.kpis.openCorrections}
           value={overview ? number.format(overview.open_correction_requests) : "—"}
         />
-        <StatTile label={strings.dashboard.kpis.breaches} value={overview ? number.format(overview.breach_count) : "—"} />
+        <StatTile
+          label={strings.dashboard.kpis.breaches}
+          value={overview ? number.format(overview.breach_count) : "—"}
+          tooltip={{ label: `About ${strings.dashboard.kpis.breaches}`, ...strings.dashboard.kpiTooltips.breaches }}
+        />
         <StatTile
           label={strings.dashboard.kpis.blockedLines}
           value={overview ? number.format(overview.blocked_line_count) : "—"}
+          tooltip={{ label: `About ${strings.dashboard.kpis.blockedLines}`, ...strings.dashboard.kpiTooltips.blockedLines }}
         />
       </div>
 

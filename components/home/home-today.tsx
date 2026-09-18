@@ -4,6 +4,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useAuthStore } from "@/lib/auth-store";
 import { publicationsApi, type PublicationDetail } from "@/lib/publications-api";
 import { strings } from "@/lib/strings";
@@ -65,10 +66,21 @@ function StepBadge({ label, blocked }: { label: string; blocked: string | null }
   );
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
+function StatTile({
+  label,
+  value,
+  tooltip,
+}: {
+  label: string;
+  value: string;
+  tooltip?: { what: string; how: string };
+}) {
   return (
     <Card className="p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">{label}</p>
+      <p className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-fg-tertiary">
+        {label}
+        {tooltip ? <InfoTooltip label={`About ${label}`} what={tooltip.what} how={tooltip.how} /> : null}
+      </p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-fg-primary">{value}</p>
     </Card>
   );
@@ -157,7 +169,14 @@ export function HomeToday() {
   return (
     <div className="flex flex-col gap-6">
       <Card className={countdown.passed && !receivedToday ? "border-status-breach-fg" : undefined}>
-        <p className="text-xs font-medium uppercase tracking-wide text-fg-tertiary">{strings.home.deadlineLabel}</p>
+        <p className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-fg-tertiary">
+          {strings.home.deadlineLabel}
+          <InfoTooltip
+            label={`About ${strings.home.deadlineLabel}`}
+            what={strings.home.tooltips.deadline.what}
+            how={strings.home.tooltips.deadline.how}
+          />
+        </p>
         <p
           className={
             "mt-1 text-xl font-semibold tabular-nums " +
@@ -169,7 +188,14 @@ export function HomeToday() {
       </Card>
 
       <Card>
-        <p className="text-sm font-semibold text-fg-primary">{strings.home.pipeline.title}</p>
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-fg-primary">
+          {strings.home.pipeline.title}
+          <InfoTooltip
+            label={`About ${strings.home.pipeline.title}`}
+            what={strings.home.tooltips.pipeline.what}
+            how={strings.home.tooltips.pipeline.how}
+          />
+        </p>
         <div className="mt-4 flex items-start justify-between gap-2">
           {(Object.keys(blockers) as Step[]).map((step) => (
             <StepBadge key={step} label={strings.home.pipeline.steps[step]} blocked={blockers[step]} />
@@ -182,8 +208,13 @@ export function HomeToday() {
         <StatTile
           label={strings.home.tiles.totalExposure}
           value={totalExposure.toLocaleString("en-AU", { style: "currency", currency: "AUD" })}
+          tooltip={strings.home.tooltips.totalExposure}
         />
-        <StatTile label={strings.home.tiles.headsRequired} value={headsRequired.toLocaleString("en-AU")} />
+        <StatTile
+          label={strings.home.tiles.headsRequired}
+          value={headsRequired.toLocaleString("en-AU")}
+          tooltip={strings.home.tooltips.headsRequired}
+        />
         <StatTile label={strings.home.tiles.openCorrections} value={String(openCorrections)} />
       </div>
 

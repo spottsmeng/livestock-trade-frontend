@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SentryInit } from "@/components/sentry-init";
+import { OnboardingHydrator } from "@/components/onboarding-hydrator";
 import { Toaster } from "@/components/ui/toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +29,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <SentryInit />
-        {children}
+        <OnboardingHydrator />
+        <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         <Toaster />
       </body>
     </html>

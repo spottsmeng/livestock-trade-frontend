@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/ui/empty-state";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { strings } from "@/lib/strings";
 import { scoreBid, CLOSE_THRESHOLD_PCT } from "@/lib/buyer/bidcheck";
 import { getCachedDnbp, type CachedDnbp } from "@/lib/buyer/db";
@@ -127,8 +128,13 @@ function BidCheckContent() {
         // "Reverse mode" — the number a buyer at the ring actually needs,
         // available the instant weight is known, before any price is decided.
         <div className="flex flex-col items-center gap-1 rounded-lg border-2 border-accent-default bg-accent-subtle p-6 text-center">
-          <p className="text-sm font-medium uppercase tracking-wide text-fg-secondary">
+          <p className="flex items-center gap-1 text-sm font-medium uppercase tracking-wide text-fg-secondary">
             {strings.buyer.bidCheck.maxPricePrefix} {weightKg}kg
+            <InfoTooltip
+              label={`About ${strings.buyer.bidCheck.maxPricePrefix}`}
+              what={strings.buyer.bidCheck.tooltips.maxPrice.what}
+              how={strings.buyer.bidCheck.tooltips.maxPrice.how}
+            />
           </p>
           <p data-numeric className="text-6xl font-extrabold leading-none text-accent-default">
             ${result.maxPricePerHead.toFixed(2)}
@@ -153,8 +159,13 @@ function BidCheckContent() {
 
       {result && hasPrice ? (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-subtle bg-sunken p-6 text-center">
-          <p data-numeric className="text-4xl font-bold text-fg-primary">
+          <p data-numeric className="flex items-center gap-1.5 text-4xl font-bold text-fg-primary">
             ${result.impliedPricePerKg.toFixed(2)} {strings.buyer.bidCheck.resultSuffix}
+            <InfoTooltip
+              label="About this price per kg"
+              what={strings.buyer.bidCheck.tooltips.impliedPrice.what}
+              how={strings.buyer.bidCheck.tooltips.impliedPrice.how}
+            />
           </p>
           <StatusBadge status={result.status} className="text-base" />
           <p className="text-sm text-fg-secondary">

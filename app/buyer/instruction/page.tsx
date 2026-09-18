@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BuyerBottomNav } from "@/components/buyer/bottom-nav";
 import { EmptyState } from "@/components/ui/empty-state";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth-store";
 import { strings } from "@/lib/strings";
@@ -96,19 +97,47 @@ function InstructionContent() {
             <p className="text-base font-semibold text-fg-primary">{line.contract_no ?? line.species}</p>
             <p className="text-sm text-fg-secondary">{line.species}</p>
             <div className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
-              <span className="text-fg-tertiary">{strings.buyer.instruction.schw}</span>
+              <span className="flex items-center gap-1 text-fg-tertiary">
+                {strings.buyer.instruction.schw}
+                <InfoTooltip
+                  label={`About ${strings.buyer.instruction.schw}`}
+                  what={strings.buyer.instruction.tooltips.schw.what}
+                  how={strings.buyer.instruction.tooltips.schw.how}
+                />
+              </span>
               <span className="text-right font-medium" data-numeric>
                 {Number(line.schw_kg).toFixed(1)} kg
               </span>
-              <span className="text-fg-tertiary">{strings.buyer.instruction.targetHeads}</span>
+              <span className="flex items-center gap-1 text-fg-tertiary">
+                {strings.buyer.instruction.targetHeads}
+                <InfoTooltip
+                  label={`About ${strings.buyer.instruction.targetHeads}`}
+                  what={strings.buyer.instruction.tooltips.targetHeads.what}
+                  how={strings.buyer.instruction.tooltips.targetHeads.how}
+                />
+              </span>
               <span className="text-right font-medium" data-numeric>
                 {Math.round(Number(line.target_heads))}
               </span>
-              <span className="text-fg-tertiary">{strings.buyer.instruction.weightRequirement}</span>
+              <span className="flex items-center gap-1 text-fg-tertiary">
+                {strings.buyer.instruction.weightRequirement}
+                <InfoTooltip
+                  label={`About ${strings.buyer.instruction.weightRequirement}`}
+                  what={strings.buyer.instruction.tooltips.weightRequirement.what}
+                  how={strings.buyer.instruction.tooltips.weightRequirement.how}
+                />
+              </span>
               <span className="text-right font-medium" data-numeric>
                 {Number(line.weight_requirement_kg).toFixed(1)} kg
               </span>
-              <span className="text-fg-tertiary">{strings.buyer.instruction.dnbp}</span>
+              <span className="flex items-center gap-1 text-fg-tertiary">
+                {strings.buyer.instruction.dnbp}
+                <InfoTooltip
+                  label={`About ${strings.buyer.instruction.dnbp}`}
+                  what={strings.buyer.dnbpHome.tooltips.dnbp.what}
+                  how={strings.buyer.dnbpHome.tooltips.dnbp.how}
+                />
+              </span>
               <span className="text-right text-lg font-bold text-accent-default" data-numeric>
                 ${Number(line.dnbp_per_kg).toFixed(2)}
               </span>
